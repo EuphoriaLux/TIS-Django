@@ -27,14 +27,22 @@ class DestinationCompany(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        verbose_name_plural = "Destination Companies"
+
 class Destination(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
     image = models.ImageField(upload_to='destination_images/', null=True, blank=True)
     company = models.ForeignKey(DestinationCompany, on_delete=models.CASCADE, related_name='destinations')
+    location = models.CharField(max_length=100, blank=True)
+    featured = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.name} - {self.company.name}"
+
+    class Meta:
+        ordering = ['name']
 
 class Cruise(models.Model):
     name = models.CharField(max_length=200)
