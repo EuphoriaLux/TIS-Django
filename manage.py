@@ -21,6 +21,10 @@ def main():
 
     try:
         from django.core.management import execute_from_command_line
+        import django
+        django.setup()
+        from cruises.models import create_initial_data_if_empty
+        create_initial_data_if_empty()
     except ImportError as exc:
         raise ImportError(
             "Couldn't import Django. Are you sure it's installed and "

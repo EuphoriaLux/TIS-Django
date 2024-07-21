@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import EmailValidator
+from .initial_data import create_initial_data
 
 class CruiseCompany(models.Model):
     name = models.CharField(max_length=100)
@@ -91,3 +92,7 @@ class Booking(models.Model):
         if not self.total_price:
             self.total_price = self.cruise_category.price * self.number_of_passengers
         super().save(*args, **kwargs)
+
+def create_initial_data_if_empty():
+    if CruiseCompany.objects.count() == 0:
+        create_initial_data()
