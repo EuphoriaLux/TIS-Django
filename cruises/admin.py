@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Cruise, CruiseType, CruiseCompany, CruiseCategory, CruiseSession, Booking
+from .models import Cruise, CruiseType, CruiseCompany, CruiseCategory, CruiseSession, Booking, DestinationCompany, Destination
 
 class CruiseSessionInline(admin.TabularInline):
     model = CruiseSession
@@ -62,3 +62,14 @@ class BookingAdmin(admin.ModelAdmin):
     list_display = ('first_name', 'last_name', 'cruise_session', 'cruise_category', 'booking_date', 'status')
     list_filter = ('status', 'cruise_session__cruise', 'cruise_category')
     search_fields = ('first_name', 'last_name', 'email')
+
+@admin.register(DestinationCompany)
+class DestinationCompanyAdmin(admin.ModelAdmin):
+    list_display = ('name', 'website')
+    search_fields = ('name', 'description')
+
+@admin.register(Destination)
+class DestinationAdmin(admin.ModelAdmin):
+    list_display = ('name', 'company', 'location', 'featured')
+    list_filter = ('company', 'featured')
+    search_fields = ('name', 'description', 'location')
