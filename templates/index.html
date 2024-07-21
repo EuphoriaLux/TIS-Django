@@ -34,24 +34,30 @@
         </div>
     </div>
 
-    <!-- Destinations Section -->
-    <div class="destinations container-fluid">
+    <!-- Brands Section -->
+    <div class="brands container-fluid">
         <div class="container">
             <div class="session-title">
-                <h2>Nos Croisères</h2>
-                <p>Découvrez l'aventure au fil de l'eau avec nos croisières maritimes et fluviales, où chaque voyage devient une escapade inoubliable.</p>
+                <h2>Nos Marques</h2>
+                <p>Découvrez nos marques de croisières exclusives, chacune offrant une expérience unique sur l'eau.</p>
             </div>
-            <div class="dest-row row">
+            <div class="brand-row row">
+                {% for brand in featured_brands %}
                 <div class="col-lg-4 col-md-6">
-                    <div class="dest-col">
-                        <div class="dest-img">
-                            <img src="{% static 'assets/images/destination/d2.png' %}" alt="">
+                    <div class="brand-col">
+                        <div class="brand-img">
+                            {% if brand.logo %}
+                                <img src="{{ brand.logo.url }}" alt="{{ brand.name }}">
+                            {% else %}
+                                <img src="{% static 'assets/images/default_brand_logo.png' %}" alt="{{ brand.name }}">
+                            {% endif %}
                         </div>
-                        <h3>Viva Cruises</h3>
-                        <button class="btn btn-outline-success">Découvrez</button>
+                        <h3>{{ brand.name }}</h3>
+                        <p>{{ brand.description|truncatewords:20 }}</p>
+                        <a href="{{ brand.website }}" class="btn btn-outline-success" target="_blank">Découvrez</a>
                     </div>
                 </div>
-                <!-- Add more destination columns as needed -->
+                {% endfor %}
             </div>
         </div>
     </div>
