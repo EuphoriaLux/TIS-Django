@@ -2,7 +2,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Cruise, Booking, CruiseSession, CruiseCategory
+from .models import Cruise, Booking, CruiseSession, CruiseCategory, Brand
 from .forms import BookingForm, ContactForm
 from django.conf import settings
 from django.views.generic import ListView
@@ -40,7 +40,14 @@ def home(request):
         categories__isnull=False
     ).order_by('?')[:3]  # Get 3 random cruises with categories
 
-    return render(request, 'index.html', {'featured_cruises': featured_cruises})
+    featured_brands = Brand.objects.filter(featured=True)
+
+    context = {
+        'featured_cruises': featured_cruises,
+        'featured_brands': featured_brands,
+    }
+
+    return render(request, 'index.html', context)
 
 def contact(request):
     if request.method == 'POST':
