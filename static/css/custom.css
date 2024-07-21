@@ -1,0 +1,19 @@
+/* static/css/custom.css */
+
+.cruise-item {
+    transition: transform 0.3s ease-in-out;
+}
+
+.cruise-item:hover {
+    transform: translateY(-5px);
+}
+
+.cruise-item img {
+    height: 200px;
+    object-fit: cover;
+}
+
+.cruise-detail img {
+    max-height: 400px;
+    object-fit: cover;
+}

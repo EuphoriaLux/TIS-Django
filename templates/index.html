@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Travel in Style - Luxury Cruise Tours{% endblock %}
+
+{% block content %}
+    <!-- Slider Section -->
+    <div class="slider container-fluid">
+        <div id="carouselExampleIndicators" class="carousel slide" data-bs-ride="carousel">
+            <ol class="carousel-indicators">
+                <li data-bs-target="#carouselExampleIndicators" data-bs-slide-to="0" class="active"></li>
+                <li data-bs-target="#carouselExampleIndicators" data-bs-slide-to="1"></li>
+                <li data-bs-target="#carouselExampleIndicators" data-bs-slide-to="2"></li>
+            </ol>
+            <div class="carousel-inner">
+                <div class="carousel-item active">
+                    <img src="{% static 'assets/images/slider/slid_2.jpg' %}" class="d-block w-100" alt="...">
+                </div>
+                <div class="carousel-item">
+                    <img src="{% static 'assets/images/slider/slid_1.jpg' %}" class="d-block w-100" alt="...">
+                </div>
+                <div class="carousel-item">
+                    <img src="{% static 'assets/images/slider/slid_3.jpg' %}" class="d-block w-100" alt="...">
+                </div>
+            </div>
+            <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+            </a>
+            <a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Destinations Section -->
+    <div class="destinations container-fluid">
+        <div class="container">
+            <div class="session-title">
+                <h2>Nos Croisères</h2>
+                <p>Découvrez l'aventure au fil de l'eau avec nos croisières maritimes et fluviales, où chaque voyage devient une escapade inoubliable.</p>
+            </div>
+            <div class="dest-row row">
+                <div class="col-lg-4 col-md-6">
+                    <div class="dest-col">
+                        <div class="dest-img">
+                            <img src="{% static 'assets/images/destination/d2.png' %}" alt="">
+                        </div>
+                        <h3>Viva Cruises</h3>
+                        <button class="btn btn-outline-success">Découvrez</button>
+                    </div>
+                </div>
+                <!-- Add more destination columns as needed -->
+            </div>
+        </div>
+    </div>
+
+
+    <div class="popular-pack no-bgpack container-fluid">
+        <div class="container">
+            <div class="session-title">
+                <h2>Popular Packages</h2>
+                <p>Discover our most sought-after cruise packages for unforgettable journeys.</p>
+            </div>
+            <div class="row pack-row">
+                {% for cruise in featured_cruises %}
+                <div class="col-lg-4 col-md-6 col-sm-6">
+                    <div class="pack-col">
+                        <img src="{{ cruise.get_image_url }}" alt="{{ cruise.name }}">
+                        <div class="revire row no-margin">
+                            <ul class="rat">
+                                {% for i in "12345"|make_list %}
+                                <li><i class="fa fa-star"></i></li>
+                                {% endfor %}
+                            </ul>
+                            <span class="pric">
+                                {% if cruise.min_category_price %}
+                                    From €{{ cruise.min_category_price|floatformat:2 }}
+                                {% else %}
+                                    Price on request
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="detail row no-margin">
+                            <h4>{{ cruise.name }}</h4>
+                            <p>{{ cruise.description|truncatewords:20 }}</p>
+                        </div>
+                        <div class="options row no-margin">
+                            <ul>
+                                <li><i class="fas fa-ship" title="{{ cruise.cruise_type.name }}"></i> {{ cruise.cruise_type.name }}</li>
+                                <li><i class="fas fa-building" title="{{ cruise.company.name }}"></i> {{ cruise.company.name }}</li>
+                                <li><i class="fas fa-calendar-alt" title="Check available dates"></i></li>
+                                <li><i class="fas fa-users" title="Various cabin types available"></i></li>
+                                <li><i class="fas fa-info-circle" title="More information"></i></li>
+                            </ul>
+                        </div>
+                        <a href="{% url 'cruise_detail' cruise.id %}" class="btn btn-primary mt-3">View Details</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Tour Type Section -->
+    <div id="why" class="our-capablit container-fluid">
+        <div class="layy">
+            <div class="container">
+                <div class="session-title">
+                    <h2>Tour Type</h2>
+                </div>
+                <div class="row mt-5">
+                    <div class="col-md-3 col-sm-6">
+                        <div class="cap-det">
+                            <div class="icon">
+                                <i class="fas fa-walking"></i>
+                            </div>
+                            <h6>Walking</h6>
+                        </div>
+                    </div>
+                    <!-- Add more tour type columns as needed -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Why Choose Us Section -->
+    <div class="why-choos-us container-fluid">
+        <div class="container">
+            <div class="session-title">
+                <h2>Why Choose Us?</h2>
+                <p>Discover the reasons that make us stand out in the world of luxury cruises.</p>
+            </div>
+            <div class="why-ro row">
+                <div class="col-lg-4 col-md-6">
+                    <div class="col-card">
+                        <div class="icon">
+                            <i class="far fa-calendar-plus"></i>
+                        </div>
+                        <div class="detail">
+                            <h4>Easy Booking</h4>
+                            <p>Simple and straightforward booking process for your convenience.</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Add more "Why Choose Us" columns as needed -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Review Section -->
+    <div class="review container-fluid">
+        <div class="container">
+            <div class="session-title">
+                <h2>What People Say About Us</h2>
+                <p>Read testimonials from our satisfied customers about their unforgettable cruise experiences.</p>
+            </div>
+            <div class="row review-row">
+                <div class="col-md-6">
+                    <div class="review-col">
+                        <div class="profil">
+                            <img src="{% static 'assets/images/testimonial/member-01.jpg' %}" alt="">  
+                        </div>
+                        <div class="review-detail">
+                            <h4>Canadian Rockies</h4>
+                            <p>The sightseeing and activities were better than we even thought! I still can't believe we did so much in such a short time, but we did not feel stressed. We really loved the tour and would do it all over again in a minute! Thanks.</p>
+                            <h6>John Smith</h6>
+                            <ul class="rat">
+                                <li><i class="fa fa-star"></i></li>
+                                <li><i class="fa fa-star"></i></li>
+                                <li><i class="fa fa-star"></i></li>
+                                <li><i class="fa fa-star"></i></li>
+                                <li><i class="fa fa-star"></i></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <!-- Add more review columns as needed -->
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'assets/js/jquery-3.2.1.min.js' %}"></script>
+    <script src="{% static 'assets/js/popper.min.js' %}"></script>
+    <script src="{% static 'assets/plugins/scroll-fixed/jquery-scrolltofixed-min.js' %}"></script>
+    <script src="{% static 'assets/plugins/slider/js/owl.carousel.min.js' %}"></script>
+    <script src="{% static 'assets/js/script.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load cruise_extras %}
+
+{% block title %}Book {{ cruise.name }} - Travel in Style{% endblock %}
+
+{% block content %}
+<div class="destinations">
+    <div class="container">
+        <div class="session-title">
+            <h2>Book {{ cruise.name }}</h2>
+        </div>
+        <div class="dest-row row">
+            <div class="col-md-6">
+                <div class="dest-col">
+                    <h3>Booking Form</h3>
+                    <form method="post" class="detail">
+                        {% csrf_token %}
+                        {% for field in form %}
+                            <div class="mb-3">
+                                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                                {{ field }}
+                                {% if field.help_text %}
+                                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                                {% endif %}
+                                {% for error in field.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                        <button type="submit" class="btn btn-success">Confirm Booking</button>
+                    </form>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="dest-col">
+                    <div class="dest-img">
+                        <i class="fas fa-ship fa-4x" style="color: #47a0ff;"></i>
+                    </div>
+                    <h3>Booking Details</h3>
+                    <div class="detail">
+                        <p><strong>Cruise:</strong> {{ cruise.name }}</p>
+                        <p><strong>Session:</strong> {{ selected_session.start_date|date:"M d, Y" }} - {{ selected_session.end_date|date:"M d, Y" }}</p>
+                        <p><strong>Category:</strong> {{ selected_category.name }}</p>
+                        <p><strong>Price:</strong> ${{ selected_category.price }} per person</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

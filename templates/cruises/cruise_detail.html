@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ cruise.name }} - Travel in Style{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .cruise-header {
+            background-size: cover;
+            background-position: center;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            padding: 100px 0;
+        }
+        .feature-icon {
+            font-size: 2rem;
+            color: #007bff;
+        }
+        .category-card {
+            transition: transform 0.3s;
+            cursor: pointer;
+        }
+        .category-card:hover {
+            transform: translateY(-5px);
+        }
+        .category-card.selected {
+            border: 2px solid #007bff;
+        }
+        #sessionSelect {
+            display: none;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="cruise-header mb-5" style="background-image: url('{{ cruise.get_image_url }}');">
+    <div class="container">
+        <h1 class="display-4">{{ cruise.name }}</h1>
+        <p class="lead">{{ cruise.cruise_type.name }} Cruise by {{ cruise.company.name }}</p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row mb-5">
+        <div class="col-md-8">
+            <h2 class="mb-4">About This Cruise</h2>
+            <p class="lead">{{ cruise.description }}</p>
+            
+            <h3 class="mt-5 mb-4">Key Features</h3>
+            <div class="row">
+                <div class="col-md-4 text-center mb-4">
+                    <i class="fas fa-ship feature-icon mb-2"></i>
+                    <h5>{{ cruise.cruise_type.name }}</h5>
+                </div>
+                <div class="col-md-4 text-center mb-4">
+                    <i class="fas fa-users feature-icon mb-2"></i>
+                    <h5>{{ cruise.sessions.first.capacity }} Passengers</h5>
+                </div>
+                <div class="col-md-4 text-center mb-4">
+                    <i class="fas fa-map-marked-alt feature-icon mb-2"></i>
+                    <h5>Multiple Destinations</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title">Quick Info</h3>
+                    <ul class="list-unstyled">
+                        <li><i class="far fa-calendar-alt mr-2"></i> Duration: 
+                            {% with session=cruise.sessions.first %}
+                                {{ session.start_date|date:"M d" }} - {{ session.end_date|date:"M d, Y" }}
+                            {% endwith %}
+                        </li>
+                        <li><i class="fas fa-phone mr-2"></i> Contact: +1 (800) 123-4567</li>
+                        <li><i class="fas fa-envelope mr-2"></i> Email: info@travelinstyle.com</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h3 class="mb-4">Select Your Cabin Category</h3>
+    <div class="row" id="categorySelect">
+        {% for category in cruise.categories.all %}
+        <div class="col-md-4 mb-4">
+            <div class="card category-card" data-category-id="{{ category.id }}">
+                <div class="card-body">
+                    <h5 class="card-title">{{ category.name }}</h5>
+                    <p class="card-text">{{ category.description }}</p>
+                    <p class="card-text"><strong>Price:</strong> ${{ category.price }}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div id="sessionSelect" class="mt-5">
+        <h3 class="mb-4">Select Your Cruise Session</h3>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Departure Date</th>
+                        <th>Return Date</th>
+                        <th>Available Capacity</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for session in cruise.sessions.all %}
+                    <tr>
+                        <td>{{ session.start_date|date:"M d, Y" }}</td>
+                        <td>{{ session.end_date|date:"M d, Y" }}</td>
+                        <td>{{ session.capacity }}</td>
+                        <td><button class="btn btn-sm btn-outline-primary book-btn" data-session-id="{{ session.id }}">Select</button></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let selectedCategoryId = null;
+    const categoryCards = document.querySelectorAll('.category-card');
+    const sessionSelect = document.getElementById('sessionSelect');
+    const bookButtons = document.querySelectorAll('.book-btn');
+
+    categoryCards.forEach(card => {
+        card.addEventListener('click', function() {
+            selectedCategoryId = this.dataset.categoryId;
+            categoryCards.forEach(c => c.classList.remove('selected'));
+            this.classList.add('selected');
+            sessionSelect.style.display = 'block';
+        });
+    });
+
+    bookButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            if (selectedCategoryId) {
+                const sessionId = this.dataset.sessionId;
+                window.location.href = `{% url 'book_cruise' cruise.id %}?category=${selectedCategoryId}&session=${sessionId}`;
+            } else {
+                alert('Please select a cabin category first.');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
