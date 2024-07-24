@@ -6,6 +6,28 @@ Version: 1.0
 coder name:Prabin Raja
 Description: This Template is created for Youtubers
 ======================================================================= */
+
+
+
+.brand-img {
+    width: 200px;  /* Set the width */
+    height: 100px; /* Set the height */
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+.brand-img img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+.brand-col {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
 /* ===================================== Import Variables ================================== */
 @import url(https://fonts.googleapis.com/css?family=Montserrat:300,400,600,700);
 @import url(https://fonts.googleapis.com/css?family=Arimo:300,400,400italic,700,700italic);
