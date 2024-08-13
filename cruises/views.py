@@ -19,13 +19,13 @@ def about(request):
                 'image': '/images/rony_broun_01s.jpg'
             },
             {
-                'name': 'Jane Smith',
-                'position': 'COO',
+                'name': 'Rafaela Marques',
+                'position': 'Head of Accounting',
                 'image': 'assets/images/team/team-2.jpg'
             },
             {
-                'name': 'Mike Johnson',
-                'position': 'Head of Operations',
+                'name': 'Tom Scheuer',
+                'position': 'Head of Digital',
                 'image': 'assets/images/team/team-3.jpg'
             }
         ]

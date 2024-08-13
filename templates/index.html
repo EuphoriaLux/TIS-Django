@@ -52,8 +52,8 @@
     <div class="brands container-fluid">
         <div class="container">
             <div class="session-title">
-                <h2>Nos Marques</h2>
-                <p>Découvrez nos marques de croisières exclusives, chacune offrant une expérience unique sur l'eau.</p>
+                <h2>Our Brands</h2>
+                <p>Discover our exclusive cruise brands, each offering a unique experience on the water</p>
             </div>
             <div class="brand-row row">
                 {% for brand in featured_brands %}
@@ -68,7 +68,7 @@
                         </div>
                         <h3>{{ brand.name }}</h3>
                         <p>{{ brand.description|truncatewords:20 }}</p>
-                        <a href="{{ brand.website }}" class="btn btn-outline-success" target="_blank">Découvrez</a>
+                        <a href="{{ brand.website }}" class="btn btn-outline-success" target="_blank">Discover</a>
                     </div>
                 </div>
                 {% endfor %}
