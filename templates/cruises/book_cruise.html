@@ -13,43 +13,71 @@
 <div class="content-wrapper">
     <div class="booking-section">
         <div class="container">
-            <h2 class="text-center mb-4">Book {{ cruise.name }}</h2>
+            <h2 class="text-center mb-4">Book Your Adventure on {{ cruise.name }}</h2>
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-lg-8">
                     <div class="booking-form-card">
-                        <h3>Booking Form</h3>
-                        <form method="post">
+                        <h3>Passenger Information</h3>
+                        <form method="post" id="bookingForm">
                             {% csrf_token %}
-                            {% for field in form %}
-                                <div class="mb-3">
-                                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-                                    {{ field }}
-                                    {% if field.help_text %}
-                                        <small class="form-text text-muted">{{ field.help_text }}</small>
-                                    {% endif %}
-                                    {% for error in field.errors %}
-                                        <div class="invalid-feedback d-block">{{ error }}</div>
-                                    {% endfor %}
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.first_name.id_for_label }}" class="form-label">First Name</label>
+                                    {{ form.first_name }}
                                 </div>
-                            {% endfor %}
-                            <button type="submit" class="btn btn-primary">Confirm Booking</button>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.last_name.id_for_label }}" class="form-label">Last Name</label>
+                                    {{ form.last_name }}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
+                                    {{ form.email }}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.phone.id_for_label }}" class="form-label">Phone</label>
+                                    {{ form.phone }}
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="{{ form.cruise_session.id_for_label }}" class="form-label">Cruise Session</label>
+                                {{ form.cruise_session }}
+                            </div>
+                            <div class="mb-3">
+                                <label for="{{ form.cruise_category_price.id_for_label }}" class="form-label">Cabin Category</label>
+                                {{ form.cruise_category_price }}
+                            </div>
+                            <div class="mb-3">
+                                <label for="{{ form.number_of_passengers.id_for_label }}" class="form-label">Number of Passengers</label>
+                                {{ form.number_of_passengers }}
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-lg w-100">Confirm Booking</button>
                         </form>
                     </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-lg-4">
                     <div class="booking-details-card">
-                        <h3>Booking Details</h3>
+                        <h3>Booking Summary</h3>
                         <div class="detail-item">
-                            <strong>Cruise:</strong> {{ cruise.name }}
+                            <i class="fas fa-ship"></i>
+                            <span>{{ cruise.name }}</span>
                         </div>
                         <div class="detail-item">
-                            <strong>Session:</strong> {{ selected_session.start_date|date:"M d, Y" }} - {{ selected_session.end_date|date:"M d, Y" }}
+                            <i class="far fa-calendar-alt"></i>
+                            <span>{{ selected_session.start_date|date:"M d, Y" }} - {{ selected_session.end_date|date:"M d, Y" }}</span>
                         </div>
                         <div class="detail-item">
-                            <strong>Category:</strong> {{ selected_category_price.category.name }}
+                            <i class="fas fa-bed"></i>
+                            <span>{{ selected_category_price.category.name }}</span>
                         </div>
-                        <div class="detail-item">
-                            <strong>Price:</strong> €{{ selected_category_price.price }} per person
+                        <div class="detail-item price">
+                            <i class="fas fa-euro-sign"></i>
+                            <span>{{ selected_category_price.price }} per person</span>
+                        </div>
+                        <div class="total-price mt-4">
+                            <strong>Total Price:</strong>
+                            <span id="totalPrice">€0</span>
                         </div>
                     </div>
                 </div>
@@ -57,4 +85,20 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('bookingForm');
+        const totalPriceElement = document.getElementById('totalPrice');
+        const pricePerPerson = {{ selected_category_price.price }};
+
+        form.addEventListener('change', function() {
+            const passengers = document.getElementById('{{ form.number_of_passengers.id_for_label }}').value;
+            const totalPrice = passengers * pricePerPerson;
+            totalPriceElement.textContent = '€' + totalPrice.toFixed(2);
+        });
+    });
+</script>
 {% endblock %}

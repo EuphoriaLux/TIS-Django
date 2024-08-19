@@ -1,57 +1,163 @@
+/* cruise_detail.css */
+
 .cruise-header {
     background-size: cover;
     background-position: center;
-    color: white;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-    padding: 150px 0;
-    margin-bottom: 30px;
+    color: #fff;
+    padding: 100px 0;
+    text-align: center;
     position: relative;
+    margin-bottom: 30px;
 }
 
 .cruise-header::before {
-    content: "";
+    content: '';
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.4);
-    z-index: 1;
+    background: rgba(0, 0, 0, 0.5);
 }
 
 .cruise-header .container {
     position: relative;
-    z-index: 2;
+    z-index: 1;
 }
 
-.cruise-header h1 {
-    font-size: 3.5rem;
-    margin-bottom: 20px;
+.feature-icons i {
+    font-size: 2.5rem;
+    color: #14863d;
+    margin-bottom: 1rem;
 }
 
-.cruise-header p {
-    font-size: 1.5rem;
+.quick-info-card {
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.feature-icon {
-    font-size: 2rem;
+.quick-info-card ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.quick-info-card li {
+    margin-bottom: 10px;
+}
+
+.quick-info-card i {
+    margin-right: 10px;
     color: #14863d;
 }
 
-.category-section {
-    padding: 40px 0;
+.booking-steps {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+}
+
+.step {
+    flex: 1;
+    text-align: center;
+    position: relative;
+}
+
+.step::after {
+    content: '';
+    position: absolute;
+    top: 25px;
+    left: 50%;
+    right: -50%;
+    height: 2px;
+    background-color: #e0e0e0;
+    z-index: -1;
+}
+
+.step:last-child::after {
+    display: none;
+}
+
+.step-number {
+    display: inline-block;
+    width: 50px;
+    height: 50px;
+    line-height: 50px;
+    border-radius: 50%;
+    background-color: #e0e0e0;
+    color: #333;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.step.active .step-number {
+    background-color: #14863d;
+    color: #fff;
+}
+
+.step-text {
+    display: block;
+    color: #666;
+}
+
+.step.active .step-text {
+    color: #14863d;
+    font-weight: bold;
+}
+
+.booking-content {
     background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 30px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.step-content {
+    display: none;
+}
+
+.step-content.active {
+    display: block;
+}
+
+.date-list {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.date-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid #e0e0e0;
+    transition: background-color 0.3s ease;
+}
+
+.date-list li:hover {
+    background-color: #e9ecef;
+}
+
+.date-list li.selected {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+}
+
+.category-comparison {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
 }
 
 .category-card {
+    flex-basis: calc(33.333% - 20px);
     background-color: #fff;
-    border-radius: 8px;
+    border-radius: 10px;
+    padding: 20px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
     transition: all 0.3s ease;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
 }
 
 .category-card:hover {
@@ -61,117 +167,36 @@
 
 .category-card.selected {
     border: 2px solid #14863d;
-    box-shadow: 0 6px 12px rgba(20, 134, 61, 0.2);
 }
 
-.category-card-header {
-    background-color: #14863d;
-    color: white;
-    padding: 15px;
-    font-size: 1.2rem;
-    font-weight: bold;
-}
-
-.category-card-body {
-    padding: 20px;
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-.category-card-footer {
-    background-color: #f8f9fa;
-    padding: 15px;
-    text-align: center;
-    font-weight: bold;
-}
-
-.category-description {
-    margin-bottom: 15px;
-    flex-grow: 1;
+.category-card h4 {
+    color: #14863d;
+    margin-bottom: 10px;
 }
 
 .equipment-list {
     list-style-type: none;
     padding-left: 0;
-    margin-bottom: 15px;
 }
 
 .equipment-list li {
     margin-bottom: 5px;
-    display: flex;
-    align-items: center;
-}
-
-.equipment-list li:before {
-    content: "\f00c";
-    font-family: "Font Awesome 5 Free";
-    font-weight: 900;
-    color: #14863d;
-    margin-right: 10px;
-}
-
-.select-btn {
-    background-color: #14863d;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.select-btn:hover {
-    background-color: #0f6d31;
-}
-
-.select-btn.selected {
-    background-color: #0f6d31;
 }
 
 .price {
-    font-size: 1.5rem;
-    color: #14863d;
-    margin-bottom: 15px;
-}
-
-#sessionSelect {
-    display: none;
-}
-
-.cruise-description h2 {
-    color: #14863d;
-    margin-top: 1.5em;
-    margin-bottom: 0.5em;
-}
-
-.cruise-description p {
-    margin-bottom: 1em;
-    line-height: 1.6;
-}
-
-.cruise-description ul {
-    list-style-type: none;
-    padding-left: 0;
-}
-
-.cruise-description li {
-    margin-bottom: 0.5em;
-    padding-left: 1.5em;
-    position: relative;
-}
-
-.cruise-description li::before {
-    content: "•";
-    color: #14863d;
+    font-size: 1.25rem;
     font-weight: bold;
-    position: absolute;
-    left: 0;
+    color: #14863d;
+    margin: 15px 0;
 }
 
-.highlight-box {
-    background-color: #f8f9fa;
-    border-left: 4px solid #14863d;
-    padding: 1em;
-    margin: 1em 0;
+.navigation-buttons {
+    display: flex;
+    justify-content: space-between;
+}
+
+@media (max-width: 768px) {
+    .category-card {
+        flex-basis: 100%;
+    }
 }

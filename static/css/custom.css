@@ -67,10 +67,6 @@
     width: 100%;
 }
 
-/* Add this to your static/css/custom.css file */
-
-/* static/css/custom.css */
-
 .pack-col {
     background-color: #fff;
     border-radius: 8px;
@@ -196,9 +192,11 @@
 }
 
 /* Ensure the session-title has some margin */
-.session-title {
+.session-title .cruise-header{
     margin-bottom: 30px;
 }
+
+
 
 /* If the header is causing issues on smaller screens, you might want to adjust its behavior */
 @media (max-width: 768px) {

@@ -5,6 +5,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/cruise_detail.css' %}">
+
 {% endblock %}
 
 {% block content %}
@@ -15,118 +16,97 @@
     </div>
 </div>
 
-<div class="about-us">
-    <div class="container">
-        <div class="row natur-row">
-            <div class="col-md-8">
-                <h2 class="mb-4">About This Cruise</h2>
-                <div class="cruise-description">
-                    {{ cruise.description|linebreaks|safe }}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8">
+            <h2>About This Cruise</h2>
+            <div class="cruise-description">
+                {{ cruise.description|linebreaks|safe }}
+            </div>
+            
+            <h3 class="mt-5">Key Features</h3>
+            <div class="row feature-icons">
+                <div class="col-md-4 text-center">
+                    <i class="fas fa-ship"></i>
+                    <h5>{{ cruise.cruise_type.name }}</h5>
                 </div>
-                
-                <h3 class="mt-5 mb-4">Key Features</h3>
-                <div class="row">
-                    <div class="col-md-4 text-center mb-4">
-                        <i class="fas fa-ship feature-icon mb-2"></i>
-                        <h5>{{ cruise.cruise_type.name }}</h5>
-                    </div>
-                    <div class="col-md-4 text-center mb-4">
-                        <i class="fas fa-users feature-icon mb-2"></i>
-                        <h5>{{ cruise.sessions.first.capacity }} Passengers</h5>
-                    </div>
-                    <div class="col-md-4 text-center mb-4">
-                        <i class="fas fa-map-marked-alt feature-icon mb-2"></i>
-                        <h5>Multiple Destinations</h5>
-                    </div>
+                <div class="col-md-4 text-center">
+                    <i class="fas fa-users"></i>
+                    <h5>{{ cruise.sessions.first.capacity }} Passengers</h5>
+                </div>
+                <div class="col-md-4 text-center">
+                    <i class="fas fa-map-marked-alt"></i>
+                    <h5>Multiple Destinations</h5>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="image-part">
-                    <div class="card">
-                        <div class="card-body">
-                            <h3 class="card-title">Quick Info</h3>
-                            <ul class="list-unstyled">
-                                <li><i class="far fa-calendar-alt mr-2"></i> Duration: 
-                                    {% with session=cruise.sessions.first %}
-                                        {{ session.start_date|date:"M d" }} - {{ session.end_date|date:"M d, Y" }}
-                                    {% endwith %}
-                                </li>
-                                <li><i class="fas fa-phone mr-2"></i> Contact: +1 (800) 123-4567</li>
-                                <li><i class="fas fa-envelope mr-2"></i> Email: info@travelinstyle.com</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
+        </div>
+        <div class="col-md-4">
+            <div class="quick-info-card">
+                <h3>Quick Info</h3>
+                <ul>
+                    <li><i class="far fa-calendar-alt"></i> Duration: 
+                        {% with session=cruise.sessions.first %}
+                            {{ session.start_date|date:"M d" }} - {{ session.end_date|date:"M d, Y" }}
+                        {% endwith %}
+                    </li>
+                    <li><i class="fas fa-phone"></i> Contact: +1 (800) 123-4567</li>
+                    <li><i class="fas fa-envelope"></i> Email: info@travelinstyle.com</li>
+                </ul>
             </div>
         </div>
     </div>
 </div>
 
-<div class="category-section">
-    <div class="container">
-        <h2 class="text-center mb-4">Select Your Cabin Category</h2>
-        <div class="row">
-            {% for category_price in cruise.cruisecategoryprice_set.all %}
-            <div class="col-md-4 mb-4">
+<div class="booking-process container mt-5">
+    <h2 class="text-center mb-4">Book Your Cruise</h2>
+    <div class="booking-steps">
+        <div class="step active" id="step1">
+            <span class="step-number">1</span>
+            <span class="step-text">Select Date</span>
+        </div>
+        <div class="step" id="step2">
+            <span class="step-number">2</span>
+            <span class="step-text">Choose Category</span>
+        </div>
+    </div>
+
+    <div class="booking-content">
+        <div class="step-content active" id="step1-content">
+            <h3>Available Cruise Dates</h3>
+            <div class="available-dates mt-3">
+                <ul class="date-list">
+                    {% for session in cruise.sessions.all %}
+                    <li data-session-id="{{ session.id }}">
+                        <span class="date">{{ session.start_date|date:"M d, Y" }} - {{ session.end_date|date:"M d, Y" }}</span>
+                        <span class="capacity">Available: {{ session.capacity }}</span>
+                        <button class="btn btn-sm btn-primary select-date-btn">Select</button>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="step-content" id="step2-content">
+            <h3>Select Your Cabin Category</h3>
+            <div class="category-comparison">
+                {% for category_price in cruise.cruisecategoryprice_set.all %}
                 <div class="category-card" data-category-id="{{ category_price.category.id }}">
-                    <div class="category-card-header">
-                        {{ category_price.category.name }}
-                    </div>
-                    <div class="category-card-body">
-                        <div class="category-description">
-                            <p>{{ category_price.category.description }}</p>
-                        </div>
-                        <h5>Equipment</h5>
-                        <ul class="equipment-list">
-                            {% for equipment in category_price.category.equipment.all %}
-                            <li>{{ equipment.name }}</li>
-                            {% endfor %}
-                        </ul>
-                        <div class="price">
-                            €{{ category_price.price|floatformat:2 }}
-                        </div>
-                    </div>
-                    <div class="category-card-footer">
-                        <button class="select-btn">Select Category</button>
-                    </div>
+                    <h4>{{ category_price.category.name }}</h4>
+                    <p class="category-description">{{ category_price.category.description }}</p>
+                    <h5>Equipment</h5>
+                    <ul class="equipment-list">
+                        {% for equipment in category_price.category.equipment.all %}
+                        <li>{{ equipment.name }}</li>
+                        {% endfor %}
+                    </ul>
+                    <div class="price">€{{ category_price.price|floatformat:2 }}</div>
+                    <button class="btn btn-outline-primary select-category-btn">Select</button>
                 </div>
+                {% endfor %}
             </div>
-            {% endfor %}
-        </div>
-    </div>
-</div>
-
-
-
-<div id="sessionSelect" class="why-choos-us">
-    <div class="container">
-        <div class="session-title row">
-            <h2>Select Your Cruise Session</h2>
-        </div>
-        <div class="row why-ro">
-            <div class="col-lg-12 col-md-12">
-                <div class="table-responsive">
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>Departure Date</th>
-                                <th>Return Date</th>
-                                <th>Available Capacity</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for session in cruise.sessions.all %}
-                            <tr>
-                                <td>{{ session.start_date|date:"M d, Y" }}</td>
-                                <td>{{ session.end_date|date:"M d, Y" }}</td>
-                                <td>{{ session.capacity }}</td>
-                                <td><button class="btn btn-sm btn-primary book-btn" data-session-id="{{ session.id }}">Select</button></td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+            <div class="navigation-buttons mt-3">
+                <button class="btn btn-secondary" id="backToDate">Back to Date Selection</button>
+                <button class="btn btn-primary" id="proceedToBooking">Proceed to Booking</button>
             </div>
         </div>
     </div>
