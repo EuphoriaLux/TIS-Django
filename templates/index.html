@@ -3,6 +3,25 @@
 
 {% block title %}Travel in Style - Luxury Cruise Tours{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/custom.css' %}" />
+<style>
+    @media (min-width: 992px) {
+        .carousel-item img {
+            max-height: 70vh;  /* Adjust this value as needed */
+            object-fit: cover;
+            width: 100%;
+            margin: 0 auto;
+        }
+        .carousel-inner {
+            max-width: 100%;  /* Adjust this value to control the overall width */
+            margin: 0 auto;
+        }
+    }
+</style>
+{% endblock %}
+
+
 {% block content %}
     <!-- Slider Section -->
     <div class="slider container-fluid">
@@ -85,6 +104,8 @@
             </div>
             <div class="row pack-row">
                 {% for cruise in featured_cruises %}
+                {% load custom_filters %}
+
                 <div class="col-lg-4 col-md-6 col-sm-6">
                     <div class="pack-col">
                         <img src="{{ cruise.get_image_url }}" alt="{{ cruise.name }}">
@@ -95,27 +116,40 @@
                                 {% endfor %}
                             </ul>
                             <span class="pric">
-                                {% if cruise.min_category_price %}
-                                    From €{{ cruise.min_category_price|floatformat:2 }}
-                                {% else %}
-                                    Price on request
-                                {% endif %}
+                                From €{{ cruise.min_category_price|floatformat:2 }}
                             </span>
                         </div>
                         <div class="detail row no-margin">
                             <h4>{{ cruise.name }}</h4>
                             <p>{{ cruise.description|truncatewords:20 }}</p>
                         </div>
-                        <div class="options row no-margin">
-                            <ul>
-                                <li><i class="fas fa-ship" title="{{ cruise.cruise_type.name }}"></i> {{ cruise.cruise_type.name }}</li>
-                                <li><i class="fas fa-building" title="{{ cruise.company.name }}"></i> {{ cruise.company.name }}</li>
-                                <li><i class="fas fa-calendar-alt" title="Check available dates"></i></li>
-                                <li><i class="fas fa-users" title="Various cabin types available"></i></li>
-                                <li><i class="fas fa-info-circle" title="More information"></i></li>
-                            </ul>
+                        <div class="options">
+                            <div class="option-item">
+                                <i class="fas fa-ship" title="Cruise Type"></i>
+                                <span>{{ cruise.cruise_type.name }}</span>
+                            </div>
+                            <div class="option-item">
+                                <i class="fas fa-building" title="Company"></i>
+                                <span>{{ cruise.company.name }}</span>
+                            </div>
+                            <div class="option-item">
+                                <i class="fas fa-calendar-alt" title="Date"></i>
+                                <span>{{ cruise.next_session.start_date|date:"M d, Y" }}</span>
+                            </div>
+                            <div class="option-item">
+                                <i class="fas fa-clock" title="Duration"></i>
+                                <span>
+                                {% if cruise.next_session %}
+                                    {{ cruise.next_session.start_date|duration_in_days:cruise.next_session.end_date }}
+                                {% else %}
+                                    Duration varies
+                                {% endif %}
+                                </span>
+                            </div>
                         </div>
-                        <a href="{% url 'cruise_detail' cruise.id %}" class="btn btn-primary mt-3">View Details</a>
+                        <div class="action-buttons">
+                            <a href="{% url 'cruise_detail' cruise.id %}" class="btn btn-primary">View Dates</a>
+                        </div>
                     </div>
                 </div>
                 {% endfor %}
@@ -123,7 +157,6 @@
         </div>
     </div>
 
-    <!-- Tour Type Section -->
 <!-- Cruise Types Section -->
 <div id="cruise-types" class="our-capablit container-fluid">
     <div class="layy">

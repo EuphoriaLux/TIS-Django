@@ -2,11 +2,13 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Cruise, Booking, CruiseSession, CruiseCategory, Brand
-from .forms import BookingForm, ContactForm
+from .models import Cruise, Booking, CruiseSession, CruiseCategory, Brand, CruiseCategoryPrice
+from .forms import BookingForm
 from django.conf import settings
 from django.views.generic import ListView
-from django.db.models import Min, OuterRef, Subquery
+from django.db.models import Min, OuterRef, Subquery, Prefetch
+from django.utils import timezone
+import random
 
 def about(request):
     context = {
@@ -20,13 +22,18 @@ def about(request):
             },
             {
                 'name': 'Rafaela Marques',
-                'position': 'Head of Accounting',
-                'image': 'assets/images/team/team-2.jpg'
+                'position': 'Portugal Office',
+                'image': 'assets/images/team/place-holder.jpg'
             },
             {
                 'name': 'Tom Scheuer',
-                'position': 'Head of Digital',
-                'image': 'assets/images/team/team-3.jpg'
+                'position': 'Luxembourg Office',
+                'image': 'assets/images/team/place-holder.jpg'
+            },
+            {
+                'name': 'Patrick Lenaerts',
+                'position': 'Belgium Office',
+                'image': 'assets/images/team/place-holder.jpg'
             }
         ]
     }
@@ -34,11 +41,28 @@ def about(request):
     return render(request, 'about_us.html', context)
 
 def home(request):
-    featured_cruises = Cruise.objects.annotate(
-        min_category_price=Min('categories__price')
+    # Subquery to get the minimum price for each cruise
+    min_price_subquery = CruiseCategoryPrice.objects.filter(
+        cruise=OuterRef('pk')
+    ).order_by('price').values('price')[:1]
+
+    # Get all cruises with prices
+    all_cruises = list(Cruise.objects.annotate(
+        min_category_price=Subquery(min_price_subquery)
     ).filter(
-        categories__isnull=False
-    ).order_by('?')[:3]  # Get 3 random cruises with categories
+        cruisecategoryprice__isnull=False
+    ).prefetch_related(
+        Prefetch('sessions', 
+                 queryset=CruiseSession.objects.filter(start_date__gte=timezone.now()).order_by('start_date'),
+                 to_attr='future_sessions')
+    ).distinct())
+
+    # Randomly select 3 cruises
+    featured_cruises = random.sample(all_cruises, min(3, len(all_cruises)))
+
+    # Add next_session attribute to each featured cruise
+    for cruise in featured_cruises:
+        cruise.next_session = cruise.future_sessions[0] if cruise.future_sessions else None
 
     featured_brands = Brand.objects.filter(featured=True)
 
@@ -69,8 +93,55 @@ def cruise_list(request):
     return render(request, 'cruises/cruise_list.html', {'cruises': cruises})
 
 def cruise_detail(request, cruise_id):
-    cruise = get_object_or_404(Cruise.objects.prefetch_related('categories', 'sessions'), pk=cruise_id)
+    cruise = get_object_or_404(
+        Cruise.objects.prefetch_related(
+            'cruisecategoryprice_set',
+            'cruisecategoryprice_set__category',
+            'sessions'
+        ),
+        pk=cruise_id
+    )
     return render(request, 'cruises/cruise_detail.html', {'cruise': cruise})
+
+def river_cruise_list(request):
+    cruises = Cruise.river_cruises().annotate(
+        min_category_price=Subquery(
+            CruiseCategoryPrice.objects.filter(cruise=OuterRef('pk')).order_by('price').values('price')[:1]
+        )
+    ).prefetch_related(
+        Prefetch('sessions', 
+                 queryset=CruiseSession.objects.filter(start_date__gte=timezone.now()).order_by('start_date'),
+                 to_attr='future_sessions')
+    )
+    
+    for cruise in cruises:
+        cruise.next_session = cruise.future_sessions[0] if cruise.future_sessions else None
+
+    context = {
+        'cruises': cruises,
+        'cruise_type': 'River Cruises'
+    }
+    return render(request, 'cruises/cruise_list.html', context)
+
+def maritime_cruise_list(request):
+    cruises = Cruise.maritime_cruises().annotate(
+        min_category_price=Subquery(
+            CruiseCategoryPrice.objects.filter(cruise=OuterRef('pk')).order_by('price').values('price')[:1]
+        )
+    ).prefetch_related(
+        Prefetch('sessions', 
+                 queryset=CruiseSession.objects.filter(start_date__gte=timezone.now()).order_by('start_date'),
+                 to_attr='future_sessions')
+    )
+    
+    for cruise in cruises:
+        cruise.next_session = cruise.future_sessions[0] if cruise.future_sessions else None
+
+    context = {
+        'cruises': cruises,
+        'cruise_type': 'Maritime Cruises'
+    }
+    return render(request, 'cruises/cruise_list.html', context)
 
 def book_cruise(request, cruise_id):
     cruise = get_object_or_404(Cruise, pk=cruise_id)
@@ -81,30 +152,30 @@ def book_cruise(request, cruise_id):
         messages.error(request, 'Please select both a cabin category and a cruise session.')
         return redirect('cruise_detail', cruise_id=cruise_id)
 
+    selected_session = get_object_or_404(CruiseSession, pk=session_id)
+    selected_category_price = get_object_or_404(CruiseCategoryPrice, category__id=category_id, cruise=cruise)
+
     initial_data = {
-        'cruise_session': session_id,
-        'cruise_category': category_id,
+        'cruise_session': selected_session.id,
+        'cruise_category_price': selected_category_price.id,
     }
 
     if request.method == 'POST':
         form = BookingForm(request.POST, cruise=cruise)
         if form.is_valid():
             booking = form.save(commit=False)
-            booking.total_price = booking.cruise_category.price * booking.number_of_passengers
+            booking.total_price = booking.cruise_category_price.price * booking.number_of_passengers
             booking.save()
             messages.success(request, 'Your booking has been confirmed!')
             return redirect('booking_confirmation', booking_id=booking.id)
     else:
         form = BookingForm(cruise=cruise, initial=initial_data)
 
-    selected_session = get_object_or_404(CruiseSession, pk=session_id)
-    selected_category = get_object_or_404(CruiseCategory, pk=category_id)
-
     context = {
         'form': form,
         'cruise': cruise,
         'selected_session': selected_session,
-        'selected_category': selected_category,
+        'selected_category_price': selected_category_price,
     }
 
     return render(request, 'cruises/book_cruise.html', context)
@@ -128,3 +199,4 @@ class FeaturedCruisesView(ListView):
         ).filter(
             categories__isnull=False
         ).order_by('min_category_price')[:6]  # Limit to 6 featured cruises
+

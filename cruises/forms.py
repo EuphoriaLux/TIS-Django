@@ -1,5 +1,5 @@
 from django import forms
-from .models import Booking, CruiseSession, CruiseCategory
+from .models import Booking, CruiseSession, CruiseCategoryPrice
 
 class BookingForm(forms.ModelForm):
     cruise_session = forms.ModelChoiceField(
@@ -7,15 +7,15 @@ class BookingForm(forms.ModelForm):
         empty_label="Select a cruise session",
         widget=forms.Select(attrs={'class': 'form-control'})
     )
-    cruise_category = forms.ModelChoiceField(
-        queryset=CruiseCategory.objects.none(),
+    cruise_category_price = forms.ModelChoiceField(
+        queryset=CruiseCategoryPrice.objects.none(),
         empty_label="Select a category",
         widget=forms.Select(attrs={'class': 'form-control'})
     )
 
     class Meta:
         model = Booking
-        fields = ['cruise_session', 'cruise_category', 'first_name', 'last_name', 'email', 'phone', 'number_of_passengers']
+        fields = ['cruise_session', 'cruise_category_price', 'first_name', 'last_name', 'email', 'phone', 'number_of_passengers']
         widgets = {
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control'}),
@@ -30,7 +30,7 @@ class BookingForm(forms.ModelForm):
         
         if cruise:
             self.fields['cruise_session'].queryset = CruiseSession.objects.filter(cruise=cruise)
-            self.fields['cruise_category'].queryset = CruiseCategory.objects.filter(cruise=cruise)
+            self.fields['cruise_category_price'].queryset = CruiseCategoryPrice.objects.filter(cruise=cruise)
 
     def clean(self):
         cleaned_data = super().clean()
@@ -42,9 +42,3 @@ class BookingForm(forms.ModelForm):
                 raise forms.ValidationError("The number of passengers exceeds the available capacity for this cruise session.")
 
         return cleaned_data
-
-class ContactForm(forms.Form):
-    name = forms.CharField(max_length=100)
-    email = forms.EmailField()
-    subject = forms.CharField(max_length=200)
-    message = forms.CharField(widget=forms.Textarea)

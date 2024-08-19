@@ -1,33 +1,77 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block extra_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/custom.css' %}" />
+{% endblock %}
+
 {% block content %}
-<div class="destinations">
-    <div class="container">
-        <div class="session-title">
-            <h2>Available Cruises</h2>
-            <p>Explore our exciting cruise offerings and find your perfect vacation</p>
-        </div>
-        <div class="dest-row row">
-            {% for cruise in cruises %}
-            <div class="col-lg-4 col-md-6 col-sm-12">
-                <div class="dest-col">
-                    <div class="dest-img">
+<div class="content-wrapper">
+    <div class="popular-pack no-bgpack container-fluid">
+        <div class="container">
+            <div class="session-title">
+                <h2>{{ cruise_type }}</h2>
+                <p>Explore our exciting {{ cruise_type|lower }} offerings and find your perfect vacation</p>
+            </div>
+            <div class="row pack-row">
+                {% for cruise in cruises %}
+                {% load custom_filters %}
+                <div class="col-lg-4 col-md-6 col-sm-6">
+                    <div class="pack-col">
                         <img src="{{ cruise.get_image_url }}" alt="{{ cruise.name }}">
+                        <div class="revire row no-margin">
+                            <ul class="rat">
+                                {% for i in "12345"|make_list %}
+                                <li><i class="fa fa-star"></i></li>
+                                {% endfor %}
+                            </ul>
+                            <span class="pric">
+                                {% if cruise.min_category_price %}
+                                    From €{{ cruise.min_category_price|floatformat:2 }}
+                                {% else %}
+                                    Price on request
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="detail row no-margin">
+                            <h4>{{ cruise.name }}</h4>
+                            <p>{{ cruise.description|truncatewords:20 }}</p>
+                        </div>
+                        <div class="options">
+                            <div class="option-item">
+                                <i class="fas fa-ship" title="Cruise Type"></i>
+                                <span>{{ cruise.cruise_type.name }}</span>
+                            </div>
+                            <div class="option-item">
+                                <i class="fas fa-building" title="Company"></i>
+                                <span>{{ cruise.company.name }}</span>
+                            </div>
+                            <div class="option-item">
+                                <i class="fas fa-calendar-alt" title="Date"></i>
+                                <span>{{ cruise.next_session.start_date|date:"M d, Y" }}</span>
+                            </div>
+                            <div class="option-item">
+                                <i class="fas fa-clock" title="Duration"></i>
+                                <span>
+                                {% if cruise.next_session %}
+                                    {{ cruise.next_session.start_date|duration_in_days:cruise.next_session.end_date }}
+                                {% else %}
+                                    Duration varies
+                                {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="action-buttons">
+                            <a href="{% url 'cruise_detail' cruise.id %}" class="btn btn-primary">View Dates</a>
+                        </div>
                     </div>
-                    <h3>{{ cruise.name }}</h3>
-                    <p>{{ cruise.description|truncatewords:20 }}</p>
-                    <p><strong>Type:</strong> {{ cruise.cruise_type.name }}</p>
-                    <p><strong>Price:</strong> ${{ cruise.price }}</p>
-                    <p><strong>Dates:</strong> {{ cruise.start_date|date:"M d, Y" }} - {{ cruise.end_date|date:"M d, Y" }}</p>
-                    <a href="{% url 'cruise_detail' cruise.id %}" class="btn btn-primary">View Details</a>
                 </div>
+                {% empty %}
+                <div class="col-12">
+                    <p>No {{ cruise_type|lower }} available at the moment. Please check back later.</p>
+                </div>
+                {% endfor %}
             </div>
-            {% empty %}
-            <div class="col-12">
-                <p>No cruises available at the moment. Please check back later.</p>
-            </div>
-            {% endfor %}
         </div>
     </div>
 </div>

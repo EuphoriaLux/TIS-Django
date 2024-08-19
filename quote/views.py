@@ -1,19 +1,11 @@
-# views.py
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from .models import TravelPackage, Quote
-from .forms import QuoteForm
+# quote/views.py
 
-@login_required
-def create_quote(request):
-    if request.method == 'POST':
-        form = QuoteForm(request.POST)
-        if form.is_valid():
-            quote = form.save(commit=False)
-            quote.customer = request.user.customer
-            quote.save()
-            # Send email with private quote
-            return redirect('quote_sent')
-    else:
-        form = QuoteForm()
-    return render(request, 'quote/create_quote.html', {'form': form})
+from django.http import FileResponse
+from django.shortcuts import get_object_or_404
+from cruises.models import Booking
+from .utils import generate_quote_pdf
+
+def generate_quote(request, booking_id):
+    booking = get_object_or_404(Booking, id=booking_id)
+    pdf = generate_quote_pdf(booking)
+    return FileResponse(pdf, as_attachment=True, filename=f'quote_{booking.id}.pdf')

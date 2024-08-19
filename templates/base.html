@@ -15,6 +15,7 @@
         <link rel="stylesheet" href="{% static 'assets/css/all.min.css' %}">
         <link rel="stylesheet" href="{% static 'assets/css/animate.css' %}">
         <link rel="stylesheet" type="text/css" href="{% static 'assets/css/style.css' %}" />
+        <link rel="stylesheet" type="text/css" href="{% static 'css/custom.css' %}" />
         {% block extra_css %}
         {% endblock %}
     </head>
@@ -66,7 +67,7 @@
                     </div>
                     <div id="menu" class="col-lg-9 col-md-12 d-none d-lg-block nav-col">
                         <ul class="navbad">
-                            <li class="nav-item {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                            <li class="nav-item {% if request.path == '/' or request.resolver_match.url_name == 'home' %}active{% endif %}">
                                 <a class="nav-link" href="{% url 'home' %}">Home</a>
                             </li>
                             <li class="nav-item {% if request.resolver_match.url_name == 'about' %}active{% endif %}">
@@ -74,6 +75,12 @@
                             </li>
                             <li class="nav-item {% if request.resolver_match.url_name == 'cruise_list' %}active{% endif %}">
                                 <a class="nav-link" href="{% url 'cruise_list' %}">Cruise List</a>
+                            </li>
+                            <li class="nav-item {% if request.resolver_match.url_name == 'river_cruise_list' %}active{% endif %}">
+                                <a class="nav-link" href="{% url 'river_cruise_list' %}">River</a>
+                            </li>
+                            <li class="nav-item {% if request.resolver_match.url_name == 'maritime_cruise_list' %}active{% endif %}">
+                                <a class="nav-link" href="{% url 'maritime_cruise_list' %}">Maritime</a>
                             </li>
                             <li class="nav-item {% if request.resolver_match.url_name == 'contact' %}active{% endif %}">
                                 <a class="nav-link" href="{% url 'contact' %}">Contact US</a>
@@ -84,7 +91,6 @@
             </div>
         </div> 
     </header>
-
 
     <div>
         {% block content %}

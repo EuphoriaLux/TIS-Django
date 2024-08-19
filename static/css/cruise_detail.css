@@ -1,0 +1,177 @@
+.cruise-header {
+    background-size: cover;
+    background-position: center;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    padding: 150px 0;
+    margin-bottom: 30px;
+    position: relative;
+}
+
+.cruise-header::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 1;
+}
+
+.cruise-header .container {
+    position: relative;
+    z-index: 2;
+}
+
+.cruise-header h1 {
+    font-size: 3.5rem;
+    margin-bottom: 20px;
+}
+
+.cruise-header p {
+    font-size: 1.5rem;
+}
+
+.feature-icon {
+    font-size: 2rem;
+    color: #14863d;
+}
+
+.category-section {
+    padding: 40px 0;
+    background-color: #f8f9fa;
+}
+
+.category-card {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.category-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.category-card.selected {
+    border: 2px solid #14863d;
+    box-shadow: 0 6px 12px rgba(20, 134, 61, 0.2);
+}
+
+.category-card-header {
+    background-color: #14863d;
+    color: white;
+    padding: 15px;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.category-card-body {
+    padding: 20px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.category-card-footer {
+    background-color: #f8f9fa;
+    padding: 15px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.category-description {
+    margin-bottom: 15px;
+    flex-grow: 1;
+}
+
+.equipment-list {
+    list-style-type: none;
+    padding-left: 0;
+    margin-bottom: 15px;
+}
+
+.equipment-list li {
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+}
+
+.equipment-list li:before {
+    content: "\f00c";
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    color: #14863d;
+    margin-right: 10px;
+}
+
+.select-btn {
+    background-color: #14863d;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.select-btn:hover {
+    background-color: #0f6d31;
+}
+
+.select-btn.selected {
+    background-color: #0f6d31;
+}
+
+.price {
+    font-size: 1.5rem;
+    color: #14863d;
+    margin-bottom: 15px;
+}
+
+#sessionSelect {
+    display: none;
+}
+
+.cruise-description h2 {
+    color: #14863d;
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+}
+
+.cruise-description p {
+    margin-bottom: 1em;
+    line-height: 1.6;
+}
+
+.cruise-description ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.cruise-description li {
+    margin-bottom: 0.5em;
+    padding-left: 1.5em;
+    position: relative;
+}
+
+.cruise-description li::before {
+    content: "•";
+    color: #14863d;
+    font-weight: bold;
+    position: absolute;
+    left: 0;
+}
+
+.highlight-box {
+    background-color: #f8f9fa;
+    border-left: 4px solid #14863d;
+    padding: 1em;
+    margin: 1em 0;
+}
