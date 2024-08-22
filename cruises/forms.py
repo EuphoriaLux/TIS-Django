@@ -2,6 +2,7 @@ from django import forms
 from .models import Booking, CruiseSession, CruiseCategoryPrice
 
 class BookingForm(forms.ModelForm):
+
     cruise_session = forms.ModelChoiceField(
         queryset=CruiseSession.objects.none(),
         empty_label="Select a cruise session",
@@ -42,3 +43,24 @@ class BookingForm(forms.ModelForm):
                 raise forms.ValidationError("The number of passengers exceeds the available capacity for this cruise session.")
 
         return cleaned_data
+    
+
+
+class ContactForm(forms.Form):
+    name = forms.CharField(max_length=100, widget=forms.TextInput(attrs={
+        'class': 'form-control input-sm',
+        'placeholder': 'Enter Name'
+    }))
+    email = forms.EmailField(widget=forms.EmailInput(attrs={
+        'class': 'form-control input-sm',
+        'placeholder': 'Enter Email Address'
+    }))
+    mobile = forms.CharField(max_length=15, widget=forms.TextInput(attrs={
+        'class': 'form-control input-sm',
+        'placeholder': 'Enter Mobile Number'
+    }))
+    message = forms.CharField(widget=forms.Textarea(attrs={
+        'class': 'form-control input-sm',
+        'placeholder': 'Enter Your Message',
+        'rows': 5
+    }))
