@@ -62,7 +62,7 @@ class BrandAdmin(admin.ModelAdmin):
 
 @admin.register(Cruise)
 class CruiseAdmin(admin.ModelAdmin):
-    list_display = ('name', 'cruise_type', 'company', 'get_price_range', 'get_next_session')
+    list_display = ('name', 'cruise_type', 'company', 'get_price_range', 'get_next_session', 'has_flyer')
     list_filter = ('cruise_type', 'company')
     search_fields = ('name', 'description')
     inlines = [CruiseCategoryPriceInline, CruiseSessionInline]
@@ -72,6 +72,10 @@ class CruiseAdmin(admin.ModelAdmin):
         }),
         ('Images', {
             'fields': ('image', 'image_url'),
+            'classes': ('collapse',)
+        }),
+        ('Flyer', {
+            'fields': ('flyer_pdf',),
             'classes': ('collapse',)
         }),
     )
@@ -89,6 +93,12 @@ class CruiseAdmin(admin.ModelAdmin):
         next_session = CruiseSession.objects.filter(cruise=obj, start_date__gte=timezone.now()).order_by('start_date').first()
         return next_session.start_date if next_session else "No upcoming sessions"
     get_next_session.short_description = "Next Session"
+
+    def has_flyer(self, obj):
+        return bool(obj.flyer_pdf)
+    has_flyer.boolean = True
+    has_flyer.short_description = "Has Flyer"
+
 
 @admin.register(Equipment)
 class EquipmentAdmin(admin.ModelAdmin):

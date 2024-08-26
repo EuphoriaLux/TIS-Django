@@ -5,6 +5,11 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/cruise_detail.css' %}">
+<style>
+    h1 {
+    color: #fff;
+}
+</style>
 
 {% endblock %}
 
@@ -51,6 +56,12 @@
                     </li>
                     <li><i class="fas fa-phone"></i> Contact: +1 (800) 123-4567</li>
                     <li><i class="fas fa-envelope"></i> Email: info@travelinstyle.com</li>
+                    <li>
+                        <i class="fas fa-file-pdf"></i> 
+                        <a href="{{ cruise.flyer_pdf.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                            Download Cruise Flyer
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>

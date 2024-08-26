@@ -55,6 +55,8 @@ class Cruise(models.Model):
     categories = models.ManyToManyField(CruiseCategory, through='CruiseCategoryPrice')
     image = models.ImageField(upload_to='cruise_images/', null=True, blank=True)
     image_url = models.URLField(max_length=1000, null=True, blank=True)
+    flyer_pdf = models.FileField(upload_to='cruise_flyers/', null=True, blank=True)  # New field for PDF flyer
+
 
     @classmethod
     def river_cruises(cls):

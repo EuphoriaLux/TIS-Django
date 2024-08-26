@@ -4,10 +4,9 @@
     background-size: cover;
     background-position: center;
     color: #fff;
-    padding: 100px 0;
+    padding: 180px 0;
     text-align: center;
     position: relative;
-    margin-bottom: 30px;
 }
 
 .cruise-header::before {

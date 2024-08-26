@@ -14,6 +14,7 @@ from django.contrib.staticfiles.finders import find
 from decimal import Decimal
 from django.conf import settings
 import os
+from PyPDF2 import PdfReader, PdfWriter
 
 class HorizontalRule(Flowable):
     def __init__(self, width, thickness=1, color=colors.black):
@@ -28,6 +29,7 @@ class HorizontalRule(Flowable):
         self.canv.line(0, 0, self.width, 0)
 
 def generate_quote_pdf(booking):
+
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4, 
                             leftMargin=1*cm, rightMargin=1*cm, 
@@ -181,16 +183,48 @@ def generate_quote_pdf(booking):
             Paragraph(f"Quote generated on {timezone.now().strftime('%d-%m-%Y at %H:%M')}. Valid for 14 days.", styles['Italic']),
         ]
 
+    def create_cruise_flyer_section():
+        if booking.cruise_session.cruise.flyer_pdf:
+            return [
+                Paragraph("Cruise Flyer", styles['Heading2']),
+                Paragraph("Please find the cruise flyer attached at the end of this document.", styles['BodyText']),
+                Spacer(1, 0.5*cm)
+            ]
+        else:
+            return []
+
     # Build the document
     elements = []
     elements.extend(create_header())
     elements.extend(create_client_info())
     elements.extend(create_journey_details())
     elements.extend(create_pricing())
+    elements.extend(create_cruise_flyer_section())  # New section
     elements.extend(create_notes())
     elements.extend(create_footer())
 
     # Generate the PDF
     doc.build(elements)
     buffer.seek(0)
-    return buffer
+
+    if booking.cruise_session.cruise.flyer_pdf:
+        # Create a PDF writer object
+        output = PdfWriter()
+
+        # Add the pages from the quote PDF
+        quote_pdf = PdfReader(buffer)
+        for page in quote_pdf.pages:
+            output.add_page(page)
+
+        # Add the pages from the cruise flyer PDF
+        flyer_pdf = PdfReader(booking.cruise_session.cruise.flyer_pdf.path)
+        for page in flyer_pdf.pages:
+            output.add_page(page)
+
+        # Write the result to a new buffer
+        buffer_final = BytesIO()
+        output.write(buffer_final)
+        buffer_final.seek(0)
+        return buffer_final
+    else:
+        return buffer
