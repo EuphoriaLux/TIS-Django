@@ -2,6 +2,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import EmailValidator
+from django.db.models import Min
 
 class CruiseCompany(models.Model):
     name = models.CharField(max_length=100)
@@ -57,6 +58,9 @@ class Cruise(models.Model):
     image_url = models.URLField(max_length=1000, null=True, blank=True)
     flyer_pdf = models.FileField(upload_to='cruise_flyers/', null=True, blank=True)  # New field for PDF flyer
 
+    def min_price(self):
+        price = self.cruisecategoryprice_set.aggregate(Min('price'))['price__min']
+        return price if price is not None else 'N/A'
 
     @classmethod
     def river_cruises(cls):

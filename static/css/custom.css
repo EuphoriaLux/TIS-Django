@@ -192,7 +192,7 @@
 }
 
 /* Ensure the session-title has some margin */
-.session-title .cruise-header{
+.session-title {
     margin-bottom: 30px;
 }
 

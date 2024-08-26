@@ -44,8 +44,6 @@ class BookingForm(forms.ModelForm):
 
         return cleaned_data
     
-
-
 class ContactForm(forms.Form):
     name = forms.CharField(max_length=100, widget=forms.TextInput(attrs={
         'class': 'form-control input-sm',

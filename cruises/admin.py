@@ -6,9 +6,10 @@ from .models import CruiseCompany, CruiseType, Brand, Cruise, CruiseCategory, Cr
 from django.urls import reverse
 from django.utils.html import format_html
 from django.urls import path
-from django.http import HttpResponse
+from django.http import HttpResponse, FileResponse
 from quote.utils import generate_quote_pdf
 from django.shortcuts import get_object_or_404
+
 
 @admin.register(Booking)
 class BookingAdmin(admin.ModelAdmin):
@@ -62,7 +63,7 @@ class BrandAdmin(admin.ModelAdmin):
 
 @admin.register(Cruise)
 class CruiseAdmin(admin.ModelAdmin):
-    list_display = ('name', 'cruise_type', 'company', 'get_price_range', 'get_next_session', 'has_flyer')
+    list_display = ('name', 'cruise_type', 'company', 'get_price_range', 'get_next_session', 'has_flyer', 'generate_flyer_button')
     list_filter = ('cruise_type', 'company')
     search_fields = ('name', 'description')
     inlines = [CruiseCategoryPriceInline, CruiseSessionInline]
@@ -99,6 +100,31 @@ class CruiseAdmin(admin.ModelAdmin):
     has_flyer.boolean = True
     has_flyer.short_description = "Has Flyer"
 
+    def generate_flyer_button(self, obj):
+        url = reverse('admin:generate_flyer', args=[obj.pk])
+        return format_html('<a class="button" href="{}">Generate Flyer</a>', url)
+    generate_flyer_button.short_description = 'Generate Flyer'
+    generate_flyer_button.allow_tags = True
+
+    def generate_flyer_view(self, request, cruise_id):
+        from .flyer.generator import CruiseFlyerGenerator  # Import here to avoid circular import
+        generator = CruiseFlyerGenerator(cruise_id)
+        flyer_path = generator.generate()
+        return FileResponse(open(flyer_path, 'rb'), content_type='application/pdf')
+
+        # Update the cruise object with the new flyer
+        cruise = Cruise.objects.get(id=cruise_id)
+        with open(flyer_path, 'rb') as f:
+            cruise.flyer_pdf.save(f'cruise_flyer_{cruise_id}.pdf', f, save=True)
+        
+        return FileResponse(open(flyer_path, 'rb'), content_type='application/pdf')
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('generate_flyer/<int:cruise_id>/', self.admin_site.admin_view(self.generate_flyer_view), name='generate_flyer'),
+        ]
+        return custom_urls + urls
 
 @admin.register(Equipment)
 class EquipmentAdmin(admin.ModelAdmin):
