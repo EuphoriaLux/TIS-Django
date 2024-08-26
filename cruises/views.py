@@ -3,7 +3,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import Cruise, Booking, CruiseSession, CruiseCategory, Brand, CruiseCategoryPrice
-from .forms import BookingForm
+from .forms import BookingForm, ContactForm
 from django.conf import settings
 from django.views.generic import ListView
 from django.db.models import Min, OuterRef, Subquery, Prefetch
@@ -77,6 +77,14 @@ def contact(request):
     if request.method == 'POST':
         form = ContactForm(request.POST)
         if form.is_valid():
+            # Here you can add logic to save the form data or send an email
+            # For example:
+            # name = form.cleaned_data['name']
+            # email = form.cleaned_data['email']
+            # mobile = form.cleaned_data['mobile']
+            # message = form.cleaned_data['message']
+            # Send email or save to database
+
             messages.success(request, 'Thank you for your message. We\'ll get back to you soon!')
             return redirect('contact')
     else:
@@ -86,7 +94,8 @@ def contact(request):
         'form': form,
         'title': 'Contact Us',
     }
-    return render(request, 'contact_us.html', context)  # Changed to contact_us.html to match your file structure
+    return render(request, 'contact_us.html', context)
+
 
 def cruise_list(request):
     cruises = Cruise.objects.all()
