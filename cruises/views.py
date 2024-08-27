@@ -2,8 +2,8 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Cruise, Booking, CruiseSession, CruiseCategory, Brand, CruiseCategoryPrice
-from .forms import BookingForm, ContactForm
+from .models import Cruise, CruiseSession, CruiseCategory, Brand, CruiseCategoryPrice
+from .forms import ContactForm
 from django.conf import settings
 from django.views.generic import ListView
 from django.db.models import Min, OuterRef, Subquery, Prefetch
@@ -96,7 +96,6 @@ def contact(request):
     }
     return render(request, 'contact_us.html', context)
 
-
 def cruise_list(request):
     cruises = Cruise.objects.all()
     return render(request, 'cruises/cruise_list.html', {'cruises': cruises})
@@ -151,47 +150,6 @@ def maritime_cruise_list(request):
         'cruise_type': 'Maritime Cruises'
     }
     return render(request, 'cruises/cruise_list.html', context)
-
-def book_cruise(request, cruise_id):
-    cruise = get_object_or_404(Cruise, pk=cruise_id)
-    session_id = request.GET.get('session')
-    category_id = request.GET.get('category')
-
-    if not session_id or not category_id:
-        messages.error(request, 'Please select both a cabin category and a cruise session.')
-        return redirect('cruise_detail', cruise_id=cruise_id)
-
-    selected_session = get_object_or_404(CruiseSession, pk=session_id)
-    selected_category_price = get_object_or_404(CruiseCategoryPrice, category__id=category_id, cruise=cruise)
-
-    initial_data = {
-        'cruise_session': selected_session.id,
-        'cruise_category_price': selected_category_price.id,
-    }
-
-    if request.method == 'POST':
-        form = BookingForm(request.POST, cruise=cruise)
-        if form.is_valid():
-            booking = form.save(commit=False)
-            booking.total_price = booking.cruise_category_price.price * booking.number_of_passengers
-            booking.save()
-            messages.success(request, 'Your booking has been confirmed!')
-            return redirect('booking_confirmation', booking_id=booking.id)
-    else:
-        form = BookingForm(cruise=cruise, initial=initial_data)
-
-    context = {
-        'form': form,
-        'cruise': cruise,
-        'selected_session': selected_session,
-        'selected_category_price': selected_category_price,
-    }
-
-    return render(request, 'cruises/book_cruise.html', context)
-
-def booking_confirmation(request, booking_id):
-    booking = get_object_or_404(Booking, pk=booking_id)
-    return render(request, 'cruises/booking_confirmation.html', {'booking': booking})
 
 class FeaturedCruisesView(ListView):
     model = Cruise

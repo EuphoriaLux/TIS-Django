@@ -30,8 +30,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.getElementById('proceedToBooking').addEventListener('click', () => {
         if (selectedSession && selectedCategory) {
-            // Redirect to booking page with selected session and category
-            window.location.href = `${bookCruiseUrl}?session=${selectedSession}&category=${selectedCategory}`;
+            // Use the bookCruiseUrl defined in the template
+            const bookingUrl = `${bookCruiseUrl}?session=${selectedSession}&category=${selectedCategory}`;
+            window.location.href = bookingUrl;
         } else {
             alert('Please select both a date and a cabin category before proceeding.');
         }

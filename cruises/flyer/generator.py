@@ -34,16 +34,18 @@ class CruiseFlyerGenerator:
         os.makedirs(flyer_dir, exist_ok=True)
         output_path = os.path.join(flyer_dir, f'{self.cruise.name}_flyer.pdf')
 
-        # Create a custom PageTemplate
-        def on_page(canvas, doc):
-            header = HeaderFlowable(self.cruise)
-            header.canv = canvas
-            header.wrap(doc.width, doc.topMargin)
-            header.draw()
 
-            canvas.saveState()
-            # Add any other page-level drawings here
-            canvas.restoreState()
+        def on_page(canvas, doc):
+            if doc.page == 1:
+                header = HeaderFlowable(self.cruise)  # Define header here
+                header.canv = canvas
+                header.wrap(doc.width, doc.topMargin)
+                header.draw()
+
+
+                canvas.saveState()
+                # Add any other page-level drawings here
+                canvas.restoreState()
 
 
         page_template = PageTemplate(
@@ -51,7 +53,6 @@ class CruiseFlyerGenerator:
             frames=[Frame(0, 0, self.width, self.height, leftPadding=0, bottomPadding=0, rightPadding=0, topPadding=0)],
             onPage=on_page
         )
-
 
         # Use BaseDocTemplate instead of SimpleDocTemplate
         doc = BaseDocTemplate(output_path, pagesize=A4, rightMargin=0, leftMargin=0, topMargin=0, bottomMargin=0)
@@ -85,6 +86,7 @@ class CruiseFlyerGenerator:
             HeaderFlowable(self.cruise),
             Spacer(1, 0.3*inch)
         ]
+    
 
     def _cruise_details_section(self):
         if self.sessions.exists():

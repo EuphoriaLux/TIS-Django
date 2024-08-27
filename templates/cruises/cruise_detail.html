@@ -61,9 +61,10 @@
                         <a href="{{ cruise.flyer_pdf.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
                             Download Cruise Flyer
                         </a>
-                    </li><
+                    </li>
                 </ul>
             </div>
+            
         </div>
     </div>
 </div>
@@ -125,8 +126,11 @@
 {% endblock %}
 
 {% block extra_js %}
+
 <script>
-    var bookCruiseUrl = "{% url 'book_cruise' cruise.id %}";
+    var cruiseId = {{ cruise.id }};
+    var bookCruiseUrl = "{% url 'quote:book_cruise' cruise.id %}";
 </script>
+
 <script src="{% static 'js/cruise_detail.js' %}"></script>
 {% endblock %}

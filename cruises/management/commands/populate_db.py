@@ -2,7 +2,7 @@
 
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from cruises.models import CruiseCompany, CruiseType, Brand, Cruise, CruiseCategory, CruiseSession, Booking
+from cruises.models import CruiseCompany, CruiseType, Brand, Cruise, CruiseCategory, CruiseSession
 from django.contrib.auth.models import User
 from django.core.files import File
 from django.conf import settings

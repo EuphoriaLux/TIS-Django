@@ -2,7 +2,7 @@
 from django.contrib import admin
 from django.db.models import Sum
 from django.utils import timezone
-from .models import CruiseCompany, CruiseType, Brand, Cruise, CruiseCategory, CruiseCategoryPrice, CruiseSession, Booking, Equipment
+from .models import CruiseCompany, CruiseType, Brand, Cruise, CruiseCategory, CruiseCategoryPrice, CruiseSession, Equipment
 from django.urls import reverse
 from django.utils.html import format_html
 from django.urls import path
@@ -10,32 +10,6 @@ from django.http import HttpResponse, FileResponse
 from quote.utils import generate_quote_pdf
 from django.shortcuts import get_object_or_404
 
-
-@admin.register(Booking)
-class BookingAdmin(admin.ModelAdmin):
-    list_display = ('first_name', 'last_name', 'cruise_session', 'total_price', 'status', 'generate_quote_button')
-    list_filter = ('status', 'booking_date')
-    search_fields = ('first_name', 'last_name', 'email')
-
-    def generate_quote_button(self, obj):
-        url = f'generate_quote/{obj.pk}/'
-        return format_html('<a class="button" href="{}">Generate Quote</a>', url)
-    generate_quote_button.short_description = 'Quote'
-    generate_quote_button.allow_tags = True
-
-    def generate_quote_view(self, request, booking_id):
-        booking = get_object_or_404(Booking, id=booking_id)
-        pdf = generate_quote_pdf(booking)
-        response = HttpResponse(pdf, content_type='application/pdf')
-        response['Content-Disposition'] = f'attachment; filename="quote_{booking.id}.pdf"'
-        return response
-
-    def get_urls(self):
-        urls = super().get_urls()
-        custom_urls = [
-            path('generate_quote/<int:booking_id>/', self.admin_site.admin_view(self.generate_quote_view), name='generate_quote'),
-        ]
-        return custom_urls + urls
 
 class CruiseCategoryPriceInline(admin.TabularInline):
     model = CruiseCategoryPrice

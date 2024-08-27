@@ -1,31 +1,50 @@
-# cruises/models.py
 from django.db import models
 from django.contrib.auth.models import User
-from django.core.validators import EmailValidator
+from django.core.validators import EmailValidator, MinValueValidator
 from django.db.models import Min
+from django.utils.text import slugify
 
-class CruiseCompany(models.Model):
-    name = models.CharField(max_length=100)
+class BaseModel(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        abstract = True
+
+class CruiseCompany(BaseModel):
+    name = models.CharField(max_length=100, unique=True)
+    slug = models.SlugField(max_length=120, unique=True, blank=True)
     description = models.TextField()
     logo = models.ImageField(upload_to='company_logos/', null=True, blank=True)
     website = models.URLField(max_length=200, blank=True)
 
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.name
 
-class CruiseType(models.Model):
-    name = models.CharField(max_length=100)
+class CruiseType(BaseModel):
+    name = models.CharField(max_length=100, unique=True)
     description = models.TextField()
 
     def __str__(self):
         return self.name
 
-class Brand(models.Model):
-    name = models.CharField(max_length=100)
+class Brand(BaseModel):
+    name = models.CharField(max_length=100, unique=True)
+    slug = models.SlugField(max_length=120, unique=True, blank=True)
     description = models.TextField()
     logo = models.ImageField(upload_to='brand_logos/', null=True, blank=True)
     website = models.URLField(max_length=200, blank=True)
     featured = models.BooleanField(default=False)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
@@ -33,30 +52,36 @@ class Brand(models.Model):
     class Meta:
         ordering = ['name']
 
-class Equipment(models.Model):
-    name = models.CharField(max_length=100)
+class Equipment(BaseModel):
+    name = models.CharField(max_length=100, unique=True)
     description = models.TextField()
 
     def __str__(self):
         return self.name
 
-class CruiseCategory(models.Model):
-    name = models.CharField(max_length=100)
+class CruiseCategory(BaseModel):
+    name = models.CharField(max_length=100, unique=True)
     description = models.TextField()
     equipment = models.ManyToManyField(Equipment, related_name='cruise_categories')
 
     def __str__(self):
         return self.name
 
-class Cruise(models.Model):
+class Cruise(BaseModel):
     name = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=220, unique=True, blank=True)
     description = models.TextField()
     cruise_type = models.ForeignKey(CruiseType, on_delete=models.CASCADE)
     company = models.ForeignKey(CruiseCompany, on_delete=models.CASCADE)
     categories = models.ManyToManyField(CruiseCategory, through='CruiseCategoryPrice')
     image = models.ImageField(upload_to='cruise_images/', null=True, blank=True)
     image_url = models.URLField(max_length=1000, null=True, blank=True)
-    flyer_pdf = models.FileField(upload_to='cruise_flyers/', null=True, blank=True)  # New field for PDF flyer
+    flyer_pdf = models.FileField(upload_to='cruise_flyers/', null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
 
     def min_price(self):
         price = self.cruisecategoryprice_set.aggregate(Min('price'))['price__min']
@@ -81,45 +106,25 @@ class Cruise(models.Model):
         else:
             return "/api/placeholder/400/300"  # Default placeholder image
 
-class CruiseCategoryPrice(models.Model):
+class CruiseCategoryPrice(BaseModel):
     cruise = models.ForeignKey(Cruise, on_delete=models.CASCADE)
     category = models.ForeignKey(CruiseCategory, on_delete=models.CASCADE)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+
+    class Meta:
+        unique_together = ('cruise', 'category')
 
     def __str__(self):
         return f"{self.cruise.name} - {self.category.name}: ${self.price}"
 
-class CruiseSession(models.Model):
+class CruiseSession(BaseModel):
     cruise = models.ForeignKey(Cruise, related_name='sessions', on_delete=models.CASCADE)
     start_date = models.DateField()
     end_date = models.DateField()
     capacity = models.PositiveIntegerField()
 
+    class Meta:
+        unique_together = ('cruise', 'start_date', 'end_date')
+
     def __str__(self):
         return f"{self.cruise.name} ({self.start_date} to {self.end_date})"
-
-class Booking(models.Model):
-    cruise_session = models.ForeignKey(CruiseSession, on_delete=models.CASCADE)
-    cruise_category_price = models.ForeignKey(CruiseCategoryPrice, on_delete=models.SET_NULL,null=True,blank=True
-)
-
-    first_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
-    email = models.EmailField(validators=[EmailValidator()])
-    phone = models.CharField(max_length=20)
-    number_of_passengers = models.PositiveIntegerField()
-    booking_date = models.DateTimeField(auto_now_add=True)
-    total_price = models.DecimalField(max_digits=10, decimal_places=2)
-    status = models.CharField(max_length=20, choices=[
-        ('pending', 'Pending'),
-        ('confirmed', 'Confirmed'),
-        ('cancelled', 'Cancelled')
-    ], default='pending')
-
-    def __str__(self):
-        return f"{self.first_name} {self.last_name} - {self.cruise_session.cruise.name}"
-
-    def save(self, *args, **kwargs):
-        if not self.total_price:
-            self.total_price = self.cruise_category_price.price * self.number_of_passengers
-        super().save(*args, **kwargs)

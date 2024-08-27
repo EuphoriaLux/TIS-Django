@@ -26,7 +26,7 @@
         <div class="header-top">
             <div class="container">
                 <div class="row col-det">
-                    <div class="col-lg-6 d-none d-lg-block">
+                    <div class="col-lg-5 d-none d-lg-block">
                         <ul class="ulleft">
                             <li>
                                 <i class="far fa-envelope"></i>
@@ -37,7 +37,18 @@
                                 +352 2877 55 31</li>
                         </ul>
                     </div>
-                    <div class="col-lg-6 col-md-12">
+                    <div class="col-lg-5 d-none d-lg-block">
+                        <ul class="ulleft">
+                            <li>
+                                <i class="far fa-envelope"></i>
+                                info@cruiseselection.be
+                                <span>|</span></li>
+                            <li>
+                                <i class="fas fa-phone-volume"></i>
+                                +32 03 313 60 79</li>
+                        </ul>
+                    </div>
+                    <div class="col-lg-2 col-md-12">
                         <ul class="ulright">
                             <li>
                                 <i class="fab fa-facebook-square"></i>
@@ -74,13 +85,13 @@
                                 <a class="nav-link" href="{% url 'about' %}">About Us</a>
                             </li>
                             <li class="nav-item {% if request.resolver_match.url_name == 'cruise_list' %}active{% endif %}">
-                                <a class="nav-link" href="{% url 'cruise_list' %}">Cruise List</a>
+                                <a class="nav-link" href="{% url 'cruises:cruise_list' %}">Cruise List</a>
                             </li>
                             <li class="nav-item {% if request.resolver_match.url_name == 'river_cruise_list' %}active{% endif %}">
-                                <a class="nav-link" href="{% url 'river_cruise_list' %}">River</a>
+                                <a class="nav-link" href="{% url 'cruises:river_cruise_list' %}">River</a>
                             </li>
                             <li class="nav-item {% if request.resolver_match.url_name == 'maritime_cruise_list' %}active{% endif %}">
-                                <a class="nav-link" href="{% url 'maritime_cruise_list' %}">Maritime</a>
+                                <a class="nav-link" href="{% url 'cruises:maritime_cruise_list' %}">Maritime</a>
                             </li>
                             <li class="nav-item {% if request.resolver_match.url_name == 'contact' %}active{% endif %}">
                                 <a class="nav-link" href="{% url 'contact' %}">Contact US</a>
