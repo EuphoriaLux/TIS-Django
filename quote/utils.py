@@ -77,11 +77,12 @@ def generate_quote_pdf(booking):
         return [t, HorizontalRule(doc.width)]
 
     def create_client_info():
+        passenger = booking.passengers.first()  # Get the first passenger
         data = [
             ["Client Information"],
-            [f"Name: {booking.first_name} {booking.last_name}"],
-            [f"Email: {booking.email or '[Please provide your email]'}"],
-            [f"Phone: {booking.phone or '[Please provide your phone number]'}"],
+            [f"Name: {passenger.first_name} {passenger.last_name}" if passenger else '[Please provide your email]'],
+            [f"Email: {passenger.email or '[Please provide your email]'}"],
+            [f"Phone: {passenger.phone or '[Please provide your phone number]'}"],
             ["Address: [Please provide your address]"],
         ]
         t = Table(data, colWidths=[doc.width])

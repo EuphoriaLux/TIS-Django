@@ -4,12 +4,12 @@ from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 from cruises.models import BaseModel, CruiseSession, CruiseCategoryPrice
 
-class Quote(BaseModel):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='quotes')
-    cruise_session = models.ForeignKey(CruiseSession, on_delete=models.CASCADE)
-    cruise_category_price = models.ForeignKey(CruiseCategoryPrice, on_delete=models.SET_NULL, null=True, blank=True)
-    number_of_passengers = models.PositiveIntegerField(validators=[MinValueValidator(1)])
-    total_price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+class Quote(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    cruise_session = models.ForeignKey('cruises.CruiseSession', on_delete=models.CASCADE)
+    cruise_category_price = models.ForeignKey('cruises.CruiseCategoryPrice', on_delete=models.SET_NULL, null=True, blank=True)
+    number_of_passengers = models.PositiveIntegerField()
+    total_price = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=20, choices=[
         ('pending', 'Pending'),
         ('approved', 'Approved'),
@@ -17,24 +17,28 @@ class Quote(BaseModel):
         ('expired', 'Expired')
     ], default='pending')
     expiration_date = models.DateTimeField()
-    
-    def __str__(self):
-        return f"Quote for {self.user.username} - {self.cruise_session.cruise.name}"
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        passenger = self.passengers.first()
+        passenger_name = f"{passenger.first_name} {passenger.last_name}" if passenger else "No passenger"
+        return f"Quote for {passenger_name} - {self.cruise_session.cruise.name}"
+    
     def save(self, *args, **kwargs):
         if not self.total_price:
             self.total_price = self.cruise_category_price.price * self.number_of_passengers
         super().save(*args, **kwargs)
 
-class QuotePassenger(BaseModel):
-    quote = models.ForeignKey(Quote, on_delete=models.CASCADE, related_name='passengers')
+class QuotePassenger(models.Model):
+    quote = models.ForeignKey(Quote, related_name='passengers', on_delete=models.CASCADE)
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     email = models.EmailField()
     phone = models.CharField(max_length=20)
-    
+
     def __str__(self):
-        return f"{self.first_name} {self.last_name} - Quote: {self.quote.id}"
+        return f"{self.first_name} {self.last_name}"
 
 class QuoteAdditionalService(BaseModel):
     quote = models.ForeignKey(Quote, on_delete=models.CASCADE, related_name='additional_services')
@@ -46,6 +50,7 @@ class QuoteAdditionalService(BaseModel):
         return f"{self.service_name} for Quote: {self.quote.id}"
 
 class Booking(BaseModel):
+
     quote = models.OneToOneField(Quote, on_delete=models.SET_NULL, null=True, blank=True, related_name='booking')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bookings')
     cruise_session = models.ForeignKey(CruiseSession, on_delete=models.CASCADE)
@@ -69,3 +74,4 @@ class Booking(BaseModel):
             status='confirmed'
         )
         return booking
+    

@@ -10,7 +10,6 @@ from django.http import HttpResponse, FileResponse
 from quote.utils import generate_quote_pdf
 from django.shortcuts import get_object_or_404
 
-
 class CruiseCategoryPriceInline(admin.TabularInline):
     model = CruiseCategoryPrice
     extra = 1
@@ -118,11 +117,6 @@ class CruiseCategoryAdmin(admin.ModelAdmin):
 
 @admin.register(CruiseSession)
 class CruiseSessionAdmin(admin.ModelAdmin):
-    list_display = ('cruise', 'start_date', 'end_date', 'capacity', 'get_available_capacity')
+    list_display = ('cruise', 'start_date', 'end_date', 'capacity')
     list_filter = ('cruise', 'start_date')
     search_fields = ('cruise__name',)
-
-    def get_available_capacity(self, obj):
-        booked = Booking.objects.filter(cruise_session=obj).aggregate(total=Sum('number_of_passengers'))['total'] or 0
-        return obj.capacity - booked
-    get_available_capacity.short_description = "Available Capacity"

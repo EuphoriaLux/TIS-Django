@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}  <!-- Add this line -->
+{% block title %}{{ cruise.name }} - Travel in Style{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/cruise_detail.css' %}">
+<link rel="stylesheet" href="{% static 'css/wizard_form.css' %}">
+<style>
+    h1 {
+    color: #fff;
+}
+</style>
+
+{% endblock %}
+
+{% block content %}
+<div class="cruise-header" style="background-image: url('{{ cruise.get_image_url }}');">
+    <div class="container">
+        <h1 class="display-4">{{ cruise.name }}</h1>
+        <p class="lead">{{ cruise.cruise_type.name }} Cruise by {{ cruise.company.name }}</p>
+    </div>
+</div>
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8">
+            <h2>About This Cruise</h2>
+            <div class="cruise-description">
+                {{ cruise.description|linebreaks|safe }}
+            </div>
+            
+            <h3 class="mt-5">Key Features</h3>
+            <div class="row feature-icons">
+                <div class="col-md-4 text-center">
+                    <i class="fas fa-ship"></i>
+                    <h5>{{ cruise.cruise_type.name }}</h5>
+                </div>
+                <div class="col-md-4 text-center">
+                    <i class="fas fa-users"></i>
+                    <h5>{{ cruise.sessions.first.capacity }} Passengers</h5>
+                </div>
+                <div class="col-md-4 text-center">
+                    <i class="fas fa-map-marked-alt"></i>
+                    <h5>Multiple Destinations</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="quick-info-card">
+                <h3>Quick Info</h3>
+                <ul>
+                    <li><i class="far fa-calendar-alt"></i> Duration: 
+                        {% with session=cruise.sessions.first %}
+                            {{ session.start_date|date:"M d" }} - {{ session.end_date|date:"M d, Y" }}
+                        {% endwith %}
+                    </li>
+                    <li><i class="fas fa-phone"></i> Contact: +1 (800) 123-4567</li>
+                    <li><i class="fas fa-envelope"></i> Email: info@travelinstyle.com</li>
+                    <li>
+                        <i class="fas fa-file-pdf"></i> 
+                        <a href="{{ cruise.flyer_pdf.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                            Download Cruise Flyerfvbbvcb
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+<div class="booking-process container mt-5">
+    <h2 class="text-center mb-4">Book Your Cruise</h2>
+    <div class="booking-steps">
+        {% for form in wizard.form_list %}
+            <div class="step {% if wizard.steps.current == forloop.counter0|stringformat:'i' %}active{% endif %}">
+                <span class="step-number">{{ forloop.counter }}</span>
+                <span class="step-text">{{ form.title|default:"Step" }}</span>
+            </div>
+        {% endfor %}
+    </div>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ wizard.management_form }}
+        
+        <div class="step-content active">
+            {% if wizard.steps.current == '0' %}
+                <!-- Passenger Information Form -->
+                {{ wizard.form|crispy }}
+            {% elif wizard.steps.current == '1' %}
+                <!-- Cruise Selection Form -->
+                <div class="cruise-selection">
+                    <h3>Select Cruise Session</h3>
+                    <div class="cruise-sessions">
+                        {% for session in cruise.sessions.all %}
+                            <div class="cruise-session-card" data-session-id="{{ session.id }}">
+                                <h4>{{ session.start_date|date:"M d, Y" }} - {{ session.end_date|date:"M d, Y" }}</h4>
+                                <p>Available seats: {{ session.capacity }}</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <h3>Select Cabin Category</h3>
+                    <div class="cabin-categories">
+                        {% for category in cruise.cruisecategoryprice_set.all %}
+                            <div class="cabin-category-card" data-category-id="{{ category.id }}">
+                                <h4>{{ category.category.name }}</h4>
+                                <p>{{ category.category.description }}</p>
+                                <p>Price: €{{ category.price }}</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ wizard.form.number_of_passengers.id_for_label }}">Number of Passengers</label>
+                        {{ wizard.form.number_of_passengers }}
+                    </div>
+
+                    <div style="display: none;">
+                        {{ wizard.form.cruise_session }}
+                        {{ wizard.form.cruise_category_price }}
+                    </div>
+                </div>
+            {% else %}
+                <!-- Confirmation Form -->
+                {{ wizard.form|crispy }}
+            {% endif %}
+        </div>
+
+        <div class="navigation-buttons mt-3">
+            {% if wizard.steps.prev %}
+                <button name="wizard_goto_step" type="submit" value="{{ wizard.steps.prev }}" class="btn btn-secondary">Previous</button>
+            {% endif %}
+            {% if wizard.steps.next %}
+                <button type="submit" class="btn btn-primary">Next</button>
+            {% else %}
+                <button type="submit" class="btn btn-success">Complete Booking</button>
+            {% endif %}
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/wizard_form.js' %}"></script>
+{% endblock %}
