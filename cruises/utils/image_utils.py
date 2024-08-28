@@ -19,6 +19,13 @@ def get_image_path(image_name):
         media_root_path = os.path.join(settings.MEDIA_ROOT, 'brand_logos', image_name)
         if os.path.exists(media_root_path):
             return media_root_path
+        
+        # If not found in static, check MEDIA_ROOT for brand logos
+    if settings.MEDIA_ROOT:
+        media_root_path = os.path.join(settings.MEDIA_ROOT, 'company_logos', image_name)
+        if os.path.exists(media_root_path):
+            return media_root_path
+
 
     # If the file is not found in any of the above locations, return None
     return None

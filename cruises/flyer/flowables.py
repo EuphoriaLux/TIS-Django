@@ -60,13 +60,13 @@ class HeaderFlowable(Flowable):
         canvas.setFillColor(colors.white)
         canvas.drawString(0.5*inch, self.page_height - 1.5*inch, "AUF ZU NEUEN HORIZONTEN")
 
-        wort_logo_path = get_image_path('luxemburger_wort_logo.png')
+        wort_logo_path = get_image_path('leserreisen_luxemburger_wort.png')
         if wort_logo_path:
-            canvas.drawImage(wort_logo_path, self.page_width - 3*inch, self.page_height - 1.2*inch, width=1.2*inch, height=0.6*inch, mask='auto')
+            canvas.drawImage(wort_logo_path, 2.5*inch, self.page_height - 1.2*inch, width=2.0*inch, height=0.6*inch, mask='auto')
 
-        viva_logo_path = get_image_path('viva_cruises_logo.png')
+        viva_logo_path = get_image_path('viva_logo.jpg')
         if viva_logo_path:
-            canvas.drawImage(viva_logo_path, self.page_width - 1.5*inch, self.page_height - 2*inch, width=1*inch, height=0.5*inch, mask='auto')
+            canvas.drawImage(viva_logo_path, 4*inch, self.page_height - 1.2*inch, width=2*inch, height=0.6*inch, mask='auto')
 
     def _draw_qr_code(self, canvas):
         # Create the QR code
@@ -82,15 +82,10 @@ class HeaderFlowable(Flowable):
         x_position = self.page_width - 1.75 * inch
         y_position = self.page_height - 1.35 * inch
 
-        # Debug: Remove the red box if not needed anymore
-        # canvas.setFillColor(colors.red)
-        # canvas.rect(x_position, y_position, size, size, stroke=1, fill=1)
-
         # Draw the QR code with proper scaling
         d = Drawing(size, size, transform=[size/width, 0, 0, size/height, 0, 0])
         d.add(qr_code)  # Add the QR code widget to the drawing
         renderPDF.draw(d, canvas, x_position, y_position)
-
 
     def _draw_pricing_circle(self, canvas):
         circle_x, circle_y = 2*inch, self.page_height - (self.header_height - 0.8*inch)
