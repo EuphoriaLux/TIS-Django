@@ -2,6 +2,7 @@
 from django import forms
 from cruises.models import CruiseSession, CruiseCategoryPrice
 from .models import Quote, QuotePassenger, Booking
+from django.forms import formset_factory
 
 class QuoteForm(forms.ModelForm):
     class Meta:
@@ -69,6 +70,24 @@ class BookingForm(forms.ModelForm):
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit, Row, Column
 
+
+class PassengerCountForm(forms.Form):
+    title = "Number of Passengers"
+    passenger_count = forms.ChoiceField(
+        choices=[(i, str(i)) for i in range(1, 5)],
+        label="How many passengers?",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            'passenger_count',
+            Submit('next', 'Next', css_class='btn-primary')
+        )
+
 class PassengerInfoForm(forms.Form):
     title = "Passenger Information"
     first_name = forms.CharField(max_length=100, required=True)
@@ -79,25 +98,22 @@ class PassengerInfoForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
+        self.helper.form_tag = False
         self.helper.layout = Layout(
             Row(
                 Column('first_name', css_class='form-group col-md-6 mb-0'),
                 Column('last_name', css_class='form-group col-md-6 mb-0'),
                 css_class='form-row'
             ),
-            'email',
-            'phone',
-            Submit('next', 'Next Step', css_class='btn-primary')
+            Row(
+                Column('email', css_class='form-group col-md-6 mb-0'),
+                Column('phone', css_class='form-group col-md-6 mb-0'),
+                css_class='form-row'
+            )
         )
 
-    def clean(self):
-        cleaned_data = super().clean()
-        for field in self.fields:
-            if not cleaned_data.get(field):
-                raise forms.ValidationError(f"{field.replace('_', ' ').capitalize()} is required.")
-        return cleaned_data
+PassengerInfoFormSet = formset_factory(PassengerInfoForm, extra=0)
     
-
 class CruiseSelectionForm(forms.Form):
     title = "Cruise Selection"
     cruise_session = forms.ModelChoiceField(queryset=CruiseSession.objects.all(), required=True)

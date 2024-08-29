@@ -69,6 +69,7 @@
     </div>
 </div>
 
+
 <div class="booking-process container mt-5">
     <h2 class="text-center mb-4">Book Your Cruise</h2>
     <div class="booking-steps">
@@ -129,7 +130,7 @@
 
 <script>
     var cruiseId = {{ cruise.id }};
-    var bookCruiseUrl = "{% url 'quote:book_cruise' cruise.id %}";
+    var bookCruiseUrl = "{% url 'quote:quote_cruise' cruise.id %}";
 </script>
 
 <script src="{% static 'js/cruise_detail.js' %}"></script>

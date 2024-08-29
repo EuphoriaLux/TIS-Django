@@ -10,7 +10,7 @@ app_name = 'cruises'
 
 urlpatterns = [
     path('', views.cruise_list, name='cruise_list'),
-    #path('<int:cruise_id>/', views.cruise_detail, name='cruise_detail'),
+    path('<int:cruise_id>/', views.cruise_detail, name='cruise_detail'),
     path('river-cruises/', views.river_cruise_list, name='river_cruise_list'),
     path('maritime-cruises/', views.maritime_cruise_list, name='maritime_cruise_list'),
 ]

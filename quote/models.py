@@ -4,11 +4,32 @@ from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 from cruises.models import BaseModel, CruiseSession, CruiseCategoryPrice
 
+class QuoteManager(models.Manager):
+    def get_active_quotes(self):
+        return self.filter(status='pending', expiration_date__gt=timezone.now())
+
+    def get_expired_quotes(self):
+        return self.filter(status='pending', expiration_date__lte=timezone.now())
+
+class PassengerManager(models.Manager):
+    def get_passengers_by_quote(self, quote_id):
+        return self.filter(quote_id=quote_id)
+
+class AdditionalServiceManager(models.Manager):
+    def get_services_by_quote(self, quote_id):
+        return self.filter(quote_id=quote_id)
+
+class BookingManager(models.Manager):
+    def get_active_bookings(self):
+        return self.filter(is_active=True)
+
 class Quote(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     cruise_session = models.ForeignKey('cruises.CruiseSession', on_delete=models.CASCADE)
     cruise_category_price = models.ForeignKey('cruises.CruiseCategoryPrice', on_delete=models.SET_NULL, null=True, blank=True)
-    number_of_passengers = models.PositiveIntegerField()
+
+    number_of_passengers = models.PositiveIntegerField(default=2) 
+
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=20, choices=[
         ('pending', 'Pending'),

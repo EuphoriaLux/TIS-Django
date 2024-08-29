@@ -1,16 +1,16 @@
 <!-- templates/quote/quote_confirmation.html -->
 {% extends 'base.html' %}
 
-{% block title %}Booking Confirmation - Travel in Style{% endblock %}
+{% block title %}Quote Confirmation - Travel in Style{% endblock %}
 
 {% block content %}
 <div class="destinations">
     <div class="container">
         <div class="session-title">
-            <h2>Booking Confirmation</h2>
+            <h2>Quote Confirmation</h2>
         </div>
         <div class="alert alert-success" role="alert">
-            Your booking has been confirmed!
+            Your quote request has been received!
         </div>
         <div class="dest-row row">
             <div class="col-lg-12 col-md-12">
@@ -18,22 +18,22 @@
                     <div class="dest-img">
                         <i class="fas fa-check-circle fa-4x" style="color: #51be78;"></i>
                     </div>
-                    <h3>Booking Details</h3>
+                    <h3>Quote Details</h3>
                     <div class="detail">
-                        <p><strong>Booking ID:</strong> {{ booking.id }}</p>
-                        <p><strong>Name:</strong> {{ booking.first_name }} {{ booking.last_name }}</p>
-                        <p><strong>Email:</strong> {{ booking.email }}</p>
-                        <p><strong>Phone:</strong> {{ booking.phone }}</p>
-                        <p><strong>Cruise:</strong> {{ booking.cruise.name }}</p>
-                        <p><strong>Number of Passengers:</strong> {{ booking.number_of_passengers }}</p>
-                        <p><strong>Total Price:</strong> ${{ booking.total_price }}</p>
-                        <p><strong>Booking Date:</strong> {{ booking.booking_date|date:"F d, Y H:i" }}</p>
-                        <p><strong>Status:</strong> {{ booking.get_status_display }}</p>
+                        <p><strong>Quote ID:</strong> {{ quote.id }}</p>
+                        <p><strong>Cruise:</strong> {{ quote.cruise_session.cruise.name }}</p>
+                        <p><strong>Cruise Date:</strong> {{ quote.cruise_session.start_date|date:"F d, Y" }} - {{ quote.cruise_session.end_date|date:"F d, Y" }}</p>
+                        <p><strong>Cabin Category:</strong> {{ quote.cruise_category_price.category.name }}</p>
+                        <p><strong>Number of Passengers:</strong> {{ quote.number_of_passengers }}</p>
+                        <p><strong>Estimated Total Price:</strong> €{{ quote.total_price }}</p>
+                        <p><strong>Quote Status:</strong> {{ quote.get_status_display }}</p>
                     </div>
-                    <a href="{% url 'cruises:cruise_list' %}" class="btn btn-success">Browse More Cruises</a>
+                    <p class="mt-4">We will contact you shortly with more details about your quote.</p>
+                    <a href="{% url 'cruises:cruise_list' %}" class="btn btn-success mt-3">Browse More Cruises</a>
                 </div>
             </div>
         </div>
     </div>
 </div>
 {% endblock %}
+
