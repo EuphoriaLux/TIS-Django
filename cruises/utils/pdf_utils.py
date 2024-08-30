@@ -1,3 +1,4 @@
+#cruises/utils/pdf_utils.py
 from reportlab.graphics.shapes import Drawing, Rect, String
 
 def create_colored_box(text, width, height, bg_color, text_color):

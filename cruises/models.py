@@ -87,6 +87,13 @@ class Cruise(BaseModel):
         price = self.cruisecategoryprice_set.aggregate(Min('price'))['price__min']
         return price if price is not None else 'N/A'
 
+    @property
+    def duration(self):
+        first_session = self.sessions.first()
+        if first_session:
+            return first_session.duration()
+        return None
+
     @classmethod
     def river_cruises(cls):
         return cls.objects.filter(cruise_type__name__icontains='river')
@@ -128,3 +135,6 @@ class CruiseSession(BaseModel):
 
     def __str__(self):
         return f"{self.cruise.name} ({self.start_date} to {self.end_date})"
+
+    def duration(self):
+        return (self.end_date - self.start_date).days + 1

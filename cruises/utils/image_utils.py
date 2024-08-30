@@ -1,3 +1,5 @@
+#cruises/utils/image_utils.py
+
 import os
 from django.conf import settings
 from django.contrib.staticfiles import finders
