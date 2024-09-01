@@ -1,187 +1,66 @@
 /* cruise_detail.css */
 
-.cruise-header {
-    background-size: cover;
-    background-position: center;
-    color: #fff;
-    padding: 180px 0;
-    text-align: center;
-    position: relative;
-}
 
-.cruise-header::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-}
+.cruise-header { background-size: cover; background-position: center; color: #fff; padding: 180px 0; text-align: center; position: relative; }
+.cruise-header::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); }
+.cruise-header .container { position: relative; z-index: 1; }
+.feature-icons i { font-size: 2.5rem; color: #14863d; margin-bottom: 1rem; }
+.quick-info-card { background-color: #f8f9fa; border-radius: 10px; padding: 20px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+.quick-info-card ul { list-style-type: none; padding-left: 0; }
+.quick-info-card li { margin-bottom: 10px; }
+.quick-info-card i { margin-right: 10px; color: #14863d; }
+.booking-steps { display: flex; justify-content: space-between; margin-bottom: 2rem; }
+.step { flex: 1; text-align: center; position: relative; }
+.step::after { content: ''; position: absolute; top: 25px; left: 50%; right: -50%; height: 2px; background-color: #e0e0e0; z-index: -1; }
+.step:last-child::after { display: none; }
+.step-number { display: inline-block; width: 50px; height: 50px; line-height: 50px; border-radius: 50%; background-color: #e0e0e0; color: #333; font-weight: bold; margin-bottom: 10px; }
+.step.active .step-number { background-color: #14863d; color: #fff; }
+.step-text { display: block; color: #666; }
+.step.active .step-text { color: #14863d; font-weight: bold; }
+.booking-content { background-color: #f8f9fa; border-radius: 10px; padding: 30px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+.step-content { display: none; }
+.step-content.active { display: block; }
+.date-list { list-style-type: none; padding-left: 0; }
+.date-list li { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #e0e0e0; transition: background-color 0.3s ease; }
+.date-list li:hover { background-color: #e9ecef; }
+.date-list li.selected { background-color: #d4edda; border-color: #c3e6cb; }
+.category-selection { display: flex; flex-wrap: wrap; gap: 20px; }
+.category-card { flex-basis: calc(50% - 10px); background-color: #fff; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); overflow: hidden; transition: all 0.3s ease; }
+.category-card:hover { transform: translateY(-5px); box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); }
+.category-header { background-color: #14863d; color: #fff; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+.category-name { font-size: 1.2rem; font-weight: bold; }
+.category-price { font-size: 1.1rem; }
+.category-content { padding: 20px; }
+.category-description { margin-bottom: 15px; }
+.category-images { margin-bottom: 15px; }
+.category-images img { width: 100%; border-radius: 5px; }
+.equipment-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; margin-top: 15px; }
+.equipment-item { text-align: center; background-color: #f8f9fa; border-radius: 8px; padding: 10px; transition: all 0.3s ease; }
+.equipment-item:hover { transform: translateY(-5px); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
+.equipment-item i { font-size: 24px; color: #14863d; margin-bottom: 5px; }
+.equipment-item span { display: block; font-size: 12px; }
+.category-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
+.compare-checkbox { display: flex; align-items: center; }
+.compare-checkbox input { margin-right: 5px; }
+#categoryComparison { display: none; margin-top: 30px; }
+.comparison-table { width: 100%; border-collapse: collapse; }
+.comparison-table th, .comparison-table td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+.comparison-table th { background-color: #f8f9fa; }
+.itinerary-section { margin-top: 40px; }
+.itinerary-day { background-color: #fff; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+.itinerary-day h4 { color: #14863d; }
+.amenities-section { margin-top: 40px; }
+.amenity-item { display: flex; align-items: center; margin-bottom: 15px; }
+.amenity-item i { font-size: 24px; color: #14863d; margin-right: 15px; }
 
-.cruise-header .container {
-    position: relative;
-    z-index: 1;
-}
 
-.feature-icons i {
-    font-size: 2.5rem;
-    color: #14863d;
-    margin-bottom: 1rem;
-}
-
-.quick-info-card {
-    background-color: #f8f9fa;
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.quick-info-card ul {
-    list-style-type: none;
-    padding-left: 0;
-}
-
-.quick-info-card li {
-    margin-bottom: 10px;
-}
-
-.quick-info-card i {
-    margin-right: 10px;
-    color: #14863d;
-}
-
-.booking-steps {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 2rem;
-}
-
-.step {
-    flex: 1;
-    text-align: center;
-    position: relative;
-}
-
-.step::after {
-    content: '';
-    position: absolute;
-    top: 25px;
-    left: 50%;
-    right: -50%;
-    height: 2px;
-    background-color: #e0e0e0;
-    z-index: -1;
-}
-
-.step:last-child::after {
-    display: none;
-}
-
-.step-number {
-    display: inline-block;
-    width: 50px;
-    height: 50px;
-    line-height: 50px;
-    border-radius: 50%;
-    background-color: #e0e0e0;
-    color: #333;
-    font-weight: bold;
-    margin-bottom: 10px;
-}
-
-.step.active .step-number {
-    background-color: #14863d;
-    color: #fff;
-}
-
-.step-text {
+.summer-special {
     display: block;
-    color: #666;
-}
-
-.step.active .step-text {
-    color: #14863d;
+    color: #ff6600;
     font-weight: bold;
+    margin-top: 5px;
+    font-size: 0.9em;
 }
-
-.booking-content {
-    background-color: #f8f9fa;
-    border-radius: 10px;
-    padding: 30px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.step-content {
-    display: none;
-}
-
-.step-content.active {
-    display: block;
-}
-
-.date-list {
-    list-style-type: none;
-    padding-left: 0;
-}
-
-.date-list li {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px;
-    border-bottom: 1px solid #e0e0e0;
-    transition: background-color 0.3s ease;
-}
-
-.date-list li:hover {
-    background-color: #e9ecef;
-}
-
-.date-list li.selected {
-    background-color: #d4edda;
-    border-color: #c3e6cb;
-}
-
-.category-comparison {
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-}
-
-.category-card {
-    flex-basis: calc(33.333% - 20px);
-    background-color: #fff;
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px;
-    transition: all 0.3s ease;
-}
-
-.category-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-}
-
-.category-card.selected {
-    border: 2px solid #14863d;
-}
-
-.category-card h4 {
-    color: #14863d;
-    margin-bottom: 10px;
-}
-
-.equipment-list {
-    list-style-type: none;
-    padding-left: 0;
-}
-
-.equipment-list li {
-    margin-bottom: 5px;
-}
-
 .price {
     font-size: 1.25rem;
     font-weight: bold;
@@ -192,6 +71,119 @@
 .navigation-buttons {
     display: flex;
     justify-content: space-between;
+}
+
+h1 {
+    color: #fff;
+}
+
+.summer-special-banner {
+    background-color: #ff6600;
+    color: white;
+    padding: 20px 0;
+    text-align: center;
+}
+
+.summer-special-banner h2 {
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+.summer-special-banner p {
+    font-size: 18px;
+    margin-bottom: 0;
+}
+
+.cabin-selection {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+
+.cabin-card {
+    width: 300px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.cabin-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.cabin-header {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-bottom: 1px solid #ddd;
+}
+
+.cabin-name {
+    margin: 0;
+    font-size: 1.2em;
+    color: #333;
+}
+
+.cabin-price {
+    font-weight: bold;
+    color: #28a745;
+}
+
+.cabin-content {
+    padding: 15px;
+}
+
+.image-slider img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.cabin-description {
+    margin-top: 15px;
+    font-size: 0.9em;
+    color: #666;
+}
+
+.cabin-features {
+    list-style-type: none;
+    padding: 0;
+    margin-top: 15px;
+}
+
+.cabin-features li {
+    margin-bottom: 5px;
+}
+
+.cabin-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-top: 1px solid #ddd;
+}
+
+.select-cabin-btn {
+    flex-grow: 1;
+    margin-right: 10px;
+}
+
+.compare-checkbox {
+    display: flex;
+    align-items: center;
+}
+
+.compare-checkbox input {
+    margin-right: 5px;
+}
+
+.cabin-card.selected {
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px #007bff;
 }
 
 @media (max-width: 768px) {

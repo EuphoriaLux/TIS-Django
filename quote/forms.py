@@ -1,37 +1,74 @@
 # quotes/forms.py
 from django import forms
-from cruises.models import CruiseSession, CruiseCategoryPrice
-from .models import Quote, QuotePassenger, Booking
+from cruises.models import CruiseSession, CruiseCabinPrice
+from .models import Quote, QuotePassenger
 from django.forms import formset_factory
 
 class QuoteForm(forms.ModelForm):
-    class Meta:
-        model = Quote
-        fields = ['cruise_session', 'cruise_category_price', 'number_of_passengers']
-
-    # Add fields for passenger information
     first_name = forms.CharField(max_length=100)
     last_name = forms.CharField(max_length=100)
     email = forms.EmailField()
     phone = forms.CharField(max_length=20)
 
+
+    cruise_session = forms.ModelChoiceField(
+        queryset=CruiseSession.objects.none(),
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        label="Cruise Session",
+    )
+
+
+    class Meta:
+        model = Quote
+        fields = ['cruise_session', 'cruise_cabin_price', 'number_of_passengers']
+
     def __init__(self, *args, **kwargs):
-        cruise = kwargs.pop('cruise', None)
+        self.cruise = kwargs.pop('cruise', None)
+        self.selected_session = kwargs.pop('session', None)
         super().__init__(*args, **kwargs)
-        if cruise:
-            self.fields['cruise_session'].queryset = cruise.sessions.all()
-            self.fields['cruise_category_price'].queryset = CruiseCategoryPrice.objects.filter(cruise=cruise)
+
+        if self.cruise:
+            self.fields['cruise_session'].queryset = CruiseSession.objects.filter(cruise=self.cruise)
+            self.fields['cruise_session'].label_from_instance = self.label_from_instance
+
+            if self.selected_session:
+                self.fields['cruise_cabin_price'].queryset = CruiseCabinPrice.objects.filter(
+                    cruise=self.cruise,
+                    session=self.selected_session
+                )
+            else:
+                self.fields['cruise_cabin_price'].queryset = CruiseCabinPrice.objects.none()
+
+        self.fields['cruise_session'].widget.attrs.update({'onchange': 'this.form.submit();'})
+        self.fields['cruise_cabin_price'].widget.attrs.update({'class': 'form-control'})
+        self.fields['number_of_passengers'].widget.attrs.update({'class': 'form-control'})
+
+
+    def label_from_instance(self, obj):
+        """Override the label for each option in the cruise_session dropdown."""
+        return f"{obj.start_date.strftime('%b %d, %Y')} - {obj.end_date.strftime('%b %d, %Y')}"
 
     def clean(self):
         cleaned_data = super().clean()
-        cruise_session = cleaned_data.get('cruise_session')
+        cruise_cabin_price = cleaned_data.get('cruise_cabin_price')
         number_of_passengers = cleaned_data.get('number_of_passengers')
 
-        if cruise_session and number_of_passengers:
-            if number_of_passengers > cruise_session.capacity:
-                raise forms.ValidationError("The number of passengers exceeds the available capacity for this cruise session.")
+        if cruise_cabin_price and number_of_passengers:
+            cleaned_data['total_price'] = cruise_cabin_price.price * number_of_passengers
 
         return cleaned_data
+
+    def get_initial_cabin_price(self):
+        if self.initial.get('cruise_cabin_price'):
+            return CruiseCabinPrice.objects.get(id=self.initial['cruise_cabin_price'])
+        return None
+
+    def get_initial_total_price(self):
+        initial_cabin_price = self.get_initial_cabin_price()
+        initial_passengers = self.initial.get('number_of_passengers', 1)
+        if initial_cabin_price:
+            return initial_cabin_price.price * initial_passengers
+        return 0
 
 class QuotePassengerForm(forms.ModelForm):
     class Meta:
@@ -44,29 +81,6 @@ class QuotePassengerForm(forms.ModelForm):
             'phone': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
-class BookingForm(forms.ModelForm):
-
-    class Meta:
-        model = Booking
-        fields = ['quote']
-        widgets = {
-            'quote': forms.Select(attrs={'class': 'form-control'}),
-        }
-
-    def __init__(self, *args, **kwargs):
-        user = kwargs.pop('user', None)
-        super().__init__(*args, **kwargs)
-        
-        if user:
-            self.fields['quote'].queryset = Quote.objects.filter(user=user, status='approved')
-
-    def clean(self):
-        cleaned_data = super().clean()
-        quote = cleaned_data.get('quote')
-        if quote and quote.status != 'approved':
-            raise forms.ValidationError("You can only create a booking from an approved quote.")
-        return cleaned_data
-    
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit, Row, Column
 
@@ -117,7 +131,7 @@ PassengerInfoFormSet = formset_factory(PassengerInfoForm, extra=0)
 class CruiseSelectionForm(forms.Form):
     title = "Cruise Selection"
     cruise_session = forms.ModelChoiceField(queryset=CruiseSession.objects.all(), required=True)
-    cruise_category_price = forms.ModelChoiceField(queryset=CruiseCategoryPrice.objects.all(), required=True)
+    cruise_category_price = forms.ModelChoiceField(queryset=CruiseCabinPrice.objects.all(), required=True)
     number_of_passengers = forms.IntegerField(min_value=1, required=True)
 
     def __init__(self, *args, **kwargs):

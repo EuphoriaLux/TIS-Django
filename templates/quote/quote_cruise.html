@@ -20,43 +20,24 @@
                         <h3>Passenger Information</h3>
                         <form method="post" id="quoteForm">
                             {% csrf_token %}
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="{{ form.first_name.id_for_label }}" class="form-label">First Name</label>
-                                    {{ form.first_name }}
+                            {% for field in form %}
+                                <div class="mb-3">
+                                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                                    {{ field }}
+                                    {% if field.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ field.errors|join:", " }}
+                                        </div>
+                                    {% endif %}
                                 </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="{{ form.last_name.id_for_label }}" class="form-label">Last Name</label>
-                                    {{ form.last_name }}
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
-                                    {{ form.email }}
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="{{ form.phone.id_for_label }}" class="form-label">Phone</label>
-                                    {{ form.phone }}
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <label for="{{ form.cruise_session.id_for_label }}" class="form-label">Cruise Session</label>
-                                {{ form.cruise_session }}
-                            </div>
-                            <div class="mb-3">
-                                <label for="{{ form.cruise_category_price.id_for_label }}" class="form-label">Cabin Category</label>
-                                {{ form.cruise_category_price }}
-                            </div>
-                            <div class="mb-3">
-                                <label for="{{ form.number_of_passengers.id_for_label }}" class="form-label">Number of Passengers</label>
-                                {{ form.number_of_passengers }}
-                            </div>
+                            {% endfor %}
                             <button type="submit" class="btn btn-primary btn-lg w-100">Request Quote</button>
                         </form>
                     </div>
                 </div>
                 <div class="col-lg-4">
+
+
                     <div class="booking-details-card">
                         <h3>Quote Summary</h3>
                         <div class="detail-item">
@@ -65,57 +46,146 @@
                         </div>
                         <div class="detail-item">
                             <i class="far fa-calendar-alt"></i>
-                            <span id="sessionDates">Select a session</span>
+                            <span id="sessionDates" data-initial="{{ selected_session.start_date|date:'M d, Y' }} - {{ selected_session.end_date|date:'M d, Y' }}">
+                                {% if selected_session %}
+                                    {{ selected_session.start_date|date:"M d, Y" }} - {{ selected_session.end_date|date:"M d, Y" }}
+                                {% else %}
+                                    Select a session
+                                {% endif %}
+                            </span>
                         </div>
+                        
                         <div class="detail-item">
                             <i class="fas fa-bed"></i>
-                            <span id="categoryName">Select a category</span>
+                            <span id="cabinType" data-initial="{{ selected_cabin_price.cabin_type.name|default:'Select a cabin type' }}">
+                                {% if selected_cabin_price %}
+                                    {{ selected_cabin_price.cabin_type.name }}
+                                {% else %}
+                                    Select a cabin type
+                                {% endif %}
+                            </span>
                         </div>
+                        
                         <div class="detail-item price">
                             <i class="fas fa-euro-sign"></i>
-                            <span id="pricePerPerson">Select a category</span>
+                            <span id="pricePerPerson" data-initial="{{ selected_cabin_price.price|default:0|floatformat:2 }}">
+                                {% if selected_cabin_price %}
+                                    €{{ selected_cabin_price.price|floatformat:2 }} per person
+                                {% else %}
+                                    Select a cabin type
+                                {% endif %}
+                            </span>
                         </div>
                         <div class="total-price mt-4">
                             <strong>Estimated Total:</strong>
-                            <span id="totalPrice">€0</span>
+                            <span id="totalPrice" data-initial="{{ initial_total_price|default:0|floatformat:2 }}">
+                                {% if initial_total_price %}
+                                    €{{ initial_total_price|floatformat:2 }}
+                                {% else %}
+                                    €0
+                                {% endif %}
+                            </span>
                         </div>
                     </div>
-                </div>
+
+
+
             </div>
         </div>
     </div>
 </div>
 {% endblock %}
 
-{% block extra_js %}
-<script>
+{% block extra_js %}<script>
     document.addEventListener('DOMContentLoaded', function() {
         const form = document.getElementById('quoteForm');
+        const sessionSelect = document.getElementById('{{ form.cruise_session.id_for_label }}');
+        const cabinPriceSelect = document.getElementById('{{ form.cruise_cabin_price.id_for_label }}');
+        const passengersInput = document.getElementById('{{ form.number_of_passengers.id_for_label }}');
         const totalPriceElement = document.getElementById('totalPrice');
         const sessionDatesElement = document.getElementById('sessionDates');
-        const categoryNameElement = document.getElementById('categoryName');
+        const cabinTypeElement = document.getElementById('cabinType');
         const pricePerPersonElement = document.getElementById('pricePerPerson');
 
-        form.addEventListener('change', function() {
-            const sessionSelect = document.getElementById('{{ form.cruise_session.id_for_label }}');
-            const categorySelect = document.getElementById('{{ form.cruise_category_price.id_for_label }}');
-            const passengers = document.getElementById('{{ form.number_of_passengers.id_for_label }}').value;
-
-            if (sessionSelect.selectedIndex > 0) {
-                const selectedSession = sessionSelect.options[sessionSelect.selectedIndex];
-                sessionDatesElement.textContent = selectedSession.text;
-            }
-
-            if (categorySelect.selectedIndex > 0) {
-                const selectedCategory = categorySelect.options[categorySelect.selectedIndex];
-                categoryNameElement.textContent = selectedCategory.text.split(' - ')[0];
-                const price = parseFloat(selectedCategory.text.split(' - ')[1].replace('€', ''));
-                pricePerPersonElement.textContent = '€' + price.toFixed(2) + ' per person';
-
-                const totalPrice = price * passengers;
-                totalPriceElement.textContent = '€' + totalPrice.toFixed(2);
-            }
+        sessionSelect.addEventListener('change', function() {
+            form.submit();
         });
+
+        cabinPriceSelect.addEventListener('change', updateSummary);
+        passengersInput.addEventListener('change', updateSummary);
+        function updateSummary() {
+            console.log('Updating summary...');
+        
+            const selectedSession = sessionSelect.options[sessionSelect.selectedIndex];
+            if (selectedSession && selectedSession.value !== '') {
+                // Assuming that the session option text contains the dates in the correct format.
+                const sessionText = selectedSession.text; 
+        
+                // Extract start and end dates from the text if the sessionText contains both.
+                const dateMatch = sessionText.match(/(\w{3} \d{2}, \d{4}) - (\w{3} \d{2}, \d{4})/);
+                
+                if (dateMatch) {
+                    // If the sessionText contains both dates in the format "Sep 01, 2024 - Sep 05, 2024"
+                    const sessionDates = dateMatch[0]; // Extract the entire date range
+                    sessionDatesElement.textContent = sessionDates;
+                } else {
+                    sessionDatesElement.textContent = sessionDatesElement.dataset.initial; // Use initial value if no match
+                }
+                
+                console.log('Session dates:', sessionDatesElement.textContent);
+            } else {
+                sessionDatesElement.textContent = sessionDatesElement.dataset.initial; // Use initial value if no session is selected
+                console.log('Using initial session dates:', sessionDatesElement.textContent);
+            }
+        
+            // Handle other elements (cabin type, price, etc.)
+            const selectedCabinPrice = cabinPriceSelect.options[cabinPriceSelect.selectedIndex];
+            console.log('Selected cabin price:', selectedCabinPrice ? selectedCabinPrice.text : 'None');
+        
+            if (selectedCabinPrice && selectedCabinPrice.value !== '') {
+                const cabinTypeText = selectedCabinPrice.text.split(':')[0].trim();
+                const priceText = selectedCabinPrice.text.split(':')[1].trim();
+        
+                cabinTypeElement.textContent = cabinTypeText;
+        
+                const parsedPrice = parseFloat(priceText.replace('$', '').replace('€', '').replace(',', ''));
+                console.log('Parsed price:', parsedPrice);
+        
+                if (!isNaN(parsedPrice)) {
+                    pricePerPersonElement.textContent = '€' + parsedPrice.toFixed(2) + ' per person';
+        
+                    const passengers = parseInt(passengersInput.value) || 1;
+                    const totalPrice = parsedPrice * passengers;
+                    totalPriceElement.textContent = '€' + totalPrice.toFixed(2);
+        
+                    console.log('Cabin type:', cabinTypeText);
+                    console.log('Price per person:', parsedPrice);
+                    console.log('Number of passengers:', passengers);
+                    console.log('Total price:', totalPrice);
+                } else {
+                    console.error('Failed to parse price:', priceText);
+                }
+            } else {
+                cabinTypeElement.textContent = cabinTypeElement.dataset.initial || 'Select a cabin type';
+                pricePerPersonElement.textContent = pricePerPersonElement.dataset.initial ? '€' + pricePerPersonElement.dataset.initial + ' per person' : 'Select a cabin type';
+                totalPriceElement.textContent = totalPriceElement.dataset.initial ? '€' + totalPriceElement.dataset.initial : '€0';
+        
+                console.log('No cabin price selected. Using initial values.');
+                console.log('Cabin type:', cabinTypeElement.textContent);
+                console.log('Price per person:', pricePerPersonElement.textContent);
+                console.log('Total price:', totalPriceElement.textContent);
+            }
+        }
+        
+        
+        // Initial update
+        updateSummary();
+
+        // Log initial values
+        console.log('Initial session:', sessionDatesElement.dataset.initial);
+        console.log('Initial cabin type:', cabinTypeElement.dataset.initial);
+        console.log('Initial price per person:', pricePerPersonElement.dataset.initial);
+        console.log('Initial total price:', totalPriceElement.dataset.initial);
     });
 </script>
 {% endblock %}

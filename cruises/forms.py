@@ -1,5 +1,5 @@
 from django import forms
-from .models import CruiseSession, CruiseCategoryPrice
+from .models import CruiseSession, CruiseCabinPrice
 
 
 class ContactForm(forms.Form):

@@ -6,10 +6,7 @@ app_name = 'quote'
 
 urlpatterns = [
     path('create-quote/<int:cruise_id>/', views.create_quote, name='create_quote'),
-
-
     path('quote-cruise/<int:cruise_id>/', views.quote_cruise, name='quote_cruise'),
-    path('booking/confirmation/', views.booking_confirmation, name='quote_confirmation'),
     path('quote-confirmation/', views.quote_confirmation, name='quote_confirmation'),
     
 ]

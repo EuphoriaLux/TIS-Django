@@ -1,8 +1,8 @@
 # cruises/views.py
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import render, get_object_or_404, redirect, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Cruise, CruiseSession, CruiseCategory, Brand, CruiseCategoryPrice
+from .models import Cruise, CruiseSession, Brand, CruiseCabinPrice, CabinType,CruiseItinerary
 from .forms import ContactForm
 from django.conf import settings
 from django.views.generic import ListView
@@ -42,7 +42,7 @@ def about(request):
 
 def home(request):
     # Subquery to get the minimum price for each cruise
-    min_price_subquery = CruiseCategoryPrice.objects.filter(
+    min_price_subquery = CruiseCabinPrice.objects.filter(
         cruise=OuterRef('pk')
     ).order_by('price').values('price')[:1]
 
@@ -50,7 +50,7 @@ def home(request):
     all_cruises = list(Cruise.objects.annotate(
         min_category_price=Subquery(min_price_subquery)
     ).filter(
-        cruisecategoryprice__isnull=False
+        cruisecabinprice__isnull=False
     ).prefetch_related(
         Prefetch('sessions', 
                  queryset=CruiseSession.objects.filter(start_date__gte=timezone.now()).order_by('start_date'),
@@ -97,30 +97,48 @@ def contact(request):
     return render(request, 'contact_us.html', context)
 
 def cruise_list(request):
-    cruises = Cruise.objects.all()
+    cruises = Cruise.objects.annotate(
+        min_category_price=Subquery(
+            CruiseCabinPrice.objects.filter(cruise=OuterRef('pk')).order_by('price').values('price')[:1]
+        )
+    ).filter(
+        cruisecabinprice__isnull=False
+    ).prefetch_related(
+        Prefetch('sessions', 
+                 queryset=CruiseSession.objects.filter(start_date__gte=timezone.now()).order_by('start_date'),
+                 to_attr='future_sessions')
+    ).distinct()
+    
+    for cruise in cruises:
+        cruise.next_session = cruise.future_sessions[0] if cruise.future_sessions else None
+
     return render(request, 'cruises/cruise_list.html', {'cruises': cruises})
 
 def cruise_detail(request, cruise_id):
-    cruise = get_object_or_404(
-        Cruise.objects.prefetch_related(
-            'cruisecategoryprice_set',
-            'cruisecategoryprice_set__category',
-            'sessions'
-        ),
-        pk=cruise_id
-    )
-    return render(request, 'cruises/cruise_detail.html', {'cruise': cruise})
+    cruise = get_object_or_404(Cruise, pk=cruise_id)
+    cabin_prices = CruiseCabinPrice.objects.filter(cruise=cruise).select_related('cabin_type', 'session')
+        # Fetch the itinerary for the cruise
+    itinerary = CruiseItinerary.objects.filter(cruise=cruise).order_by('day')
+
+    context = {
+        'cruise': cruise,
+        'cabin_prices': cabin_prices,
+        'has_summer_special': cruise.sessions.filter(is_summer_special=True).exists(),
+        'itinerary': itinerary,  # Add the itinerary to the context
+    }
+    
+    return render(request, 'cruises/cruise_detail.html', context)
 
 def river_cruise_list(request):
     cruises = Cruise.river_cruises().annotate(
         min_category_price=Subquery(
-            CruiseCategoryPrice.objects.filter(cruise=OuterRef('pk')).order_by('price').values('price')[:1]
+            CruiseCabinPrice.objects.filter(cruise=OuterRef('pk')).order_by('price').values('price')[:1]
         )
     ).prefetch_related(
         Prefetch('sessions', 
                  queryset=CruiseSession.objects.filter(start_date__gte=timezone.now()).order_by('start_date'),
                  to_attr='future_sessions')
-    )
+    ).distinct()
     
     for cruise in cruises:
         cruise.next_session = cruise.future_sessions[0] if cruise.future_sessions else None
@@ -134,13 +152,13 @@ def river_cruise_list(request):
 def maritime_cruise_list(request):
     cruises = Cruise.maritime_cruises().annotate(
         min_category_price=Subquery(
-            CruiseCategoryPrice.objects.filter(cruise=OuterRef('pk')).order_by('price').values('price')[:1]
+            CruiseCabinPrice.objects.filter(cruise=OuterRef('pk')).order_by('price').values('price')[:1]
         )
     ).prefetch_related(
         Prefetch('sessions', 
                  queryset=CruiseSession.objects.filter(start_date__gte=timezone.now()).order_by('start_date'),
                  to_attr='future_sessions')
-    )
+    ).distinct()
     
     for cruise in cruises:
         cruise.next_session = cruise.future_sessions[0] if cruise.future_sessions else None
@@ -157,7 +175,7 @@ class FeaturedCruisesView(ListView):
     context_object_name = 'featured_cruises'
 
     def get_queryset(self):
-        cheapest_price = CruiseCategory.objects.filter(
+        cheapest_price = CabinType.objects.filter(
             cruise=OuterRef('pk')
         ).order_by('price').values('price')[:1]
 
@@ -167,3 +185,10 @@ class FeaturedCruisesView(ListView):
             categories__isnull=False
         ).order_by('min_category_price')[:6]  # Limit to 6 featured cruises
 
+def download_cruise_flyer(request, cruise_slug):
+    cruise = get_object_or_404(Cruise, slug=cruise_slug)
+    response = cruise.generate_pdf_flyer()
+    if response:
+        response['Content-Disposition'] = f'attachment; filename="{cruise.slug}_flyer.pdf"'
+        return response
+    return HttpResponse("Error generating PDF", status=500)

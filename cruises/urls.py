@@ -13,6 +13,7 @@ urlpatterns = [
     path('<int:cruise_id>/', views.cruise_detail, name='cruise_detail'),
     path('river-cruises/', views.river_cruise_list, name='river_cruise_list'),
     path('maritime-cruises/', views.maritime_cruise_list, name='maritime_cruise_list'),
+    path('cruise/<slug:cruise_slug>/flyer/', views.download_cruise_flyer, name='cruise_flyer'),
 ]
 
 if settings.DEBUG:
