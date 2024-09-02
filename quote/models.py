@@ -2,57 +2,54 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
-from cruises.models import BaseModel, CruiseSession
+from cruises.models import BaseModel, CruiseSession, CruiseCabinPrice
 from django.utils import timezone
 
 class QuoteManager(models.Manager):
     def get_active_quotes(self):
-        return self.filter(status='pending', expiration_date__gt=timezone.now())
+        return self.filter(status=Quote.Status.PENDING, expiration_date__gt=timezone.now())
 
     def get_expired_quotes(self):
-        return self.filter(status='pending', expiration_date__lte=timezone.now())
-
-class PassengerManager(models.Manager):
-    def get_passengers_by_quote(self, quote_id):
-        return self.filter(quote_id=quote_id)
-
-class AdditionalServiceManager(models.Manager):
-    def get_services_by_quote(self, quote_id):
-        return self.filter(quote_id=quote_id)
+        return self.filter(status=Quote.Status.PENDING, expiration_date__lte=timezone.now())
 
 class BookingManager(models.Manager):
     def get_active_bookings(self):
         return self.filter(is_active=True)
 
-class Quote(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
-    cruise_session = models.ForeignKey('cruises.CruiseSession', on_delete=models.CASCADE)
-    cruise_cabin_price = models.ForeignKey('cruises.CruiseCabinPrice', on_delete=models.SET_NULL, null=True, blank=True)
+class Quote(BaseModel):
+    class Status(models.TextChoices):
+        PENDING = 'pending', 'Pending'
+        APPROVED = 'approved', 'Approved'
+        REJECTED = 'rejected', 'Rejected'
+        EXPIRED = 'expired', 'Expired'
 
-    number_of_passengers = models.PositiveIntegerField(default=2) 
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    cruise_session = models.ForeignKey(CruiseSession, on_delete=models.CASCADE)
+    cruise_cabin_price = models.ForeignKey(CruiseCabinPrice, on_delete=models.SET_NULL, null=True, blank=True)
 
+    number_of_passengers = models.PositiveIntegerField(default=2)
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
-    status = models.CharField(max_length=20, choices=[
-        ('pending', 'Pending'),
-        ('approved', 'Approved'),
-        ('rejected', 'Rejected'),
-        ('expired', 'Expired')
-    ], default='pending')
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
     expiration_date = models.DateTimeField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     objects = QuoteManager()
 
     def __str__(self):
         passenger = self.passengers.first()
         passenger_name = f"{passenger.first_name} {passenger.last_name}" if passenger else "No passenger"
-        return f"Quote for {passenger_name} - {self.cruise_session.cruise.name}"
+        return f"Quote {self.id} for {passenger_name} - {self.cruise_session.cruise.name}"
     
     def save(self, *args, **kwargs):
         if not self.total_price and self.cruise_cabin_price:
             self.total_price = self.cruise_cabin_price.price * self.number_of_passengers
         super().save(*args, **kwargs)
+
+    def is_expired(self):
+        return self.expiration_date <= timezone.now()
+
+    def mark_as_expired(self):
+        self.status = self.Status.EXPIRED
+        self.save()
 
 class QuotePassenger(models.Model):
     quote = models.ForeignKey(Quote, related_name='passengers', on_delete=models.CASCADE)

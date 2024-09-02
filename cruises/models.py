@@ -37,6 +37,9 @@ class CruiseCompany(BaseModel):
     def __str__(self):
         return self.name
 
+    class Meta:
+        verbose_name_plural = "Cruise Companies"
+
 class CruiseType(BaseModel):
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField()
@@ -74,12 +77,16 @@ class Equipment(BaseModel):
     def __str__(self):
         return self.name
 
+    class Meta:
+        verbose_name_plural = "Equipment"
+
 class Cruise(BaseModel):
     name = models.CharField(max_length=200)
     slug = models.SlugField(max_length=220, unique=True, blank=True)
     description = models.TextField()
     cruise_type = models.ForeignKey(CruiseType, on_delete=models.CASCADE)
     company = models.ForeignKey(CruiseCompany, on_delete=models.CASCADE)
+    brand = models.ForeignKey(Brand, on_delete=models.SET_NULL, null=True, blank=True)
 
     image = models.ImageField(upload_to='cruise_images/', null=True, blank=True)
     image_url = models.URLField(max_length=1000, null=True, blank=True)
@@ -151,21 +158,10 @@ class Cruise(BaseModel):
         return ''
 
 class CruiseSession(BaseModel):
-
     cruise = models.ForeignKey(Cruise, related_name='sessions', on_delete=models.CASCADE)
     start_date = models.DateField()
     end_date = models.DateField()
     capacity = models.PositiveIntegerField()
-
-    class Meta:
-        unique_together = ('cruise', 'start_date', 'end_date')
-
-    def __str__(self):
-        return f"{self.cruise.name} ({self.start_date} to {self.end_date})"
-
-    def duration(self):
-        return (self.end_date - self.start_date).days + 1
-    
     is_summer_special = models.BooleanField(default=False, verbose_name=_("Summer Special"))
     summer_special_type = models.CharField(
         max_length=50,
@@ -178,8 +174,15 @@ class CruiseSession(BaseModel):
         verbose_name=_("Summer Special Type")
     )
 
+    class Meta:
+        unique_together = ('cruise', 'start_date', 'end_date')
+        ordering = ['start_date']
+
     def __str__(self):
-        return f"{self.cruise.name} - {self.start_date}"
+        return f"{self.cruise.name} ({self.start_date} to {self.end_date})"
+
+    def duration(self):
+        return (self.end_date - self.start_date).days + 1
 
     def get_summer_special_message(self):
         if self.is_summer_special:
@@ -192,7 +195,7 @@ class CruiseSession(BaseModel):
 class CruiseItinerary(BaseModel):
     cruise = models.ForeignKey(Cruise, related_name='itineraries', on_delete=models.CASCADE)
     day = models.PositiveIntegerField()
-    port = models.CharField(max_length=100)
+    port = models.ForeignKey('Port', on_delete=models.SET_NULL, null=True)
     arrival_time = models.TimeField(null=True, blank=True)
     departure_time = models.TimeField(null=True, blank=True)
     description = models.TextField()
@@ -200,12 +203,12 @@ class CruiseItinerary(BaseModel):
     class Meta:
         ordering = ['cruise', 'day']
         unique_together = ['cruise', 'day']
+        verbose_name_plural = "Cruise Itineraries"
 
     def __str__(self):
-        return f"{self.cruise.name} - Day {self.day}: {self.port}"
+        return f"{self.cruise.name} - Day {self.day}: {self.port.name if self.port else 'At Sea'}"
     
 class Port(BaseModel):
-
     name = models.CharField(max_length=100)
     country = models.CharField(max_length=100)
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
@@ -214,6 +217,9 @@ class Port(BaseModel):
 
     def __str__(self):
         return f"{self.name}, {self.country}"
+
+    class Meta:
+        unique_together = ['name', 'country']
     
 class CabinType(BaseModel):
     name = models.CharField(max_length=100)
@@ -232,6 +238,7 @@ class CabinTypeEquipment(BaseModel):
 
     class Meta:
         unique_together = ['cabin_type', 'equipment']
+        verbose_name_plural = "Cabin Type Equipment"
 
     def __str__(self):
         return f"{self.cabin_type} - {self.equipment} (x{self.quantity})"
@@ -239,11 +246,12 @@ class CabinTypeEquipment(BaseModel):
 class CruiseCabinPrice(BaseModel):
     cruise = models.ForeignKey(Cruise, on_delete=models.CASCADE)
     cabin_type = models.ForeignKey(CabinType, on_delete=models.CASCADE)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
     session = models.ForeignKey(CruiseSession, on_delete=models.CASCADE, null=True, blank=True)
 
     class Meta:
         unique_together = ['cruise', 'cabin_type', 'session']
+        verbose_name_plural = "Cruise Cabin Prices"
 
     def __str__(self):
         return f"{self.cruise.name} - {self.cabin_type.name}: ${self.price}"
