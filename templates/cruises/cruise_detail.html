@@ -167,11 +167,11 @@
             <h3>Select Your Cabin Type</h3>
             <div class="cabin-selection">
                 {% for cabin_price in cabin_prices %}
-                <div class="cabin-card" data-cabin-id="{{ cabin_price.cabin_type.id }}">
-                    <div class="cabin-header">
-                        <h4 class="cabin-name">{{ cabin_price.cabin_type.name }}</h4>
-                        <span class="cabin-price">€{{ cabin_price.price|floatformat:2 }}</span>
-                    </div>
+                    <div class="cabin-card" data-cabin-price-id="{{ cabin_price.id }}" data-session-id="{{ cabin_price.session.id }}">
+                        <div class="cabin-header">
+                            <h4 class="cabin-name">{{ cabin_price.cabin_type.name }}</h4>
+                            <span class="cabin-price">€{{ cabin_price.price|floatformat:2 }}</span>
+                        </div>
                     <div class="cabin-content">
                         <div class="cabin-images">
                             <div class="image-slider">
@@ -212,45 +212,55 @@
     var cruiseId = {{ cruise.id }};
     var bookCruiseUrl = "{% url 'quote:quote_cruise' cruise.id %}";
 
-    document.addEventListener('DOMContentLoaded', function() {
-        let selectedSessionId = null;
-        let selectedCabinId = null;
+document.addEventListener('DOMContentLoaded', function() {
+    let selectedSessionId = null;
+    let selectedCabinPriceId = null;
 
-        // Date selection
-        const dateList = document.querySelector('.date-list');
-        dateList.addEventListener('click', function(e) {
-            if (e.target.classList.contains('select-date-btn')) {
-                const listItem = e.target.closest('li');
-                selectedSessionId = listItem.dataset.sessionId;
-                document.querySelectorAll('.date-list li').forEach(li => li.classList.remove('selected'));
-                listItem.classList.add('selected');
-                document.getElementById('step1').classList.remove('active');
-                document.getElementById('step2').classList.add('active');
-                document.getElementById('step1-content').classList.remove('active');
-                document.getElementById('step2-content').classList.add('active');
-            }
-        });
+    // Date selection
+    const dateList = document.querySelector('.date-list');
+    dateList.addEventListener('click', function(e) {
+        if (e.target.classList.contains('select-date-btn')) {
+            const listItem = e.target.closest('li');
+            selectedSessionId = listItem.dataset.sessionId;
+            document.querySelectorAll('.date-list li').forEach(li => li.classList.remove('selected'));
+            listItem.classList.add('selected');
+            
+            // Filter cabin types based on selected session
+            document.querySelectorAll('.cabin-card').forEach(card => {
+                if (card.dataset.sessionId === selectedSessionId) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
 
-        // Cabin selection
-        const cabinSelection = document.querySelector('.cabin-selection');
-        cabinSelection.addEventListener('click', function(e) {
-            if (e.target.classList.contains('select-cabin-btn')) {
-                const cabinCard = e.target.closest('.cabin-card');
-                selectedCabinId = cabinCard.dataset.cabinId;
-                document.querySelectorAll('.cabin-card').forEach(card => card.classList.remove('selected'));
-                cabinCard.classList.add('selected');
-                
-                // Update button text and style
-                document.querySelectorAll('.select-cabin-btn').forEach(btn => {
-                    btn.textContent = 'Select';
-                    btn.classList.remove('btn-success');
-                    btn.classList.add('btn-primary');
-                });
-                e.target.textContent = 'Selected';
-                e.target.classList.remove('btn-primary');
-                e.target.classList.add('btn-success');
-            }
-        });
+            document.getElementById('step1').classList.remove('active');
+            document.getElementById('step2').classList.add('active');
+            document.getElementById('step1-content').classList.remove('active');
+            document.getElementById('step2-content').classList.add('active');
+        }
+    });
+
+    // Cabin selection
+    const cabinSelection = document.querySelector('.cabin-selection');
+    cabinSelection.addEventListener('click', function(e) {
+        if (e.target.classList.contains('select-cabin-btn')) {
+            const cabinCard = e.target.closest('.cabin-card');
+            selectedCabinPriceId = cabinCard.dataset.cabinPriceId;
+            document.querySelectorAll('.cabin-card').forEach(card => card.classList.remove('selected'));
+            cabinCard.classList.add('selected');
+            
+            // Update button text and style
+            document.querySelectorAll('.select-cabin-btn').forEach(btn => {
+                btn.textContent = 'Select';
+                btn.classList.remove('btn-success');
+                btn.classList.add('btn-primary');
+            });
+            e.target.textContent = 'Selected';
+            e.target.classList.remove('btn-primary');
+            e.target.classList.add('btn-success');
+        }
+    });
 
         // Navigation buttons
         document.getElementById('backToDate').addEventListener('click', function() {
@@ -260,13 +270,20 @@
             document.getElementById('step1-content').classList.add('active');
         });
 
+
+
+
         document.getElementById('proceedToBooking').addEventListener('click', function() {
-            if (selectedSessionId && selectedCabinId) {
-                window.location.href = `${bookCruiseUrl}?session=${selectedSessionId}&cabin=${selectedCabinId}`;
-            } else {
-                alert('Please select both a date and a cabin type before proceeding.');
-            }
-        });
+        if (selectedSessionId && selectedCabinPriceId) {
+            window.location.href = `${bookCruiseUrl}?session=${selectedSessionId}&cabin_price=${selectedCabinPriceId}`;
+        } else {
+            alert('Please select both a date and a cabin type before proceeding.');
+        }
+    });
+
+
+
+
 
         // Initialize slick carousel for cabin images
         $('.image-slider').slick({

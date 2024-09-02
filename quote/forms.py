@@ -10,13 +10,17 @@ class QuoteForm(forms.ModelForm):
     email = forms.EmailField()
     phone = forms.CharField(max_length=20)
 
-
     cruise_session = forms.ModelChoiceField(
         queryset=CruiseSession.objects.none(),
         widget=forms.Select(attrs={'class': 'form-control'}),
         label="Cruise Session",
     )
 
+    cruise_cabin_price = forms.ModelChoiceField(
+        queryset=CruiseCabinPrice.objects.none(),
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        label="Cabin Type",
+    )
 
     class Meta:
         model = Quote
@@ -24,29 +28,30 @@ class QuoteForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         self.cruise = kwargs.pop('cruise', None)
-        self.selected_session = kwargs.pop('session', None)
+        self.session = kwargs.pop('session', None)
         super().__init__(*args, **kwargs)
 
         if self.cruise:
             self.fields['cruise_session'].queryset = CruiseSession.objects.filter(cruise=self.cruise)
-            self.fields['cruise_session'].label_from_instance = self.label_from_instance
+            if self.session:
+                self.fields['cruise_session'].initial = self.session
 
-            if self.selected_session:
-                self.fields['cruise_cabin_price'].queryset = CruiseCabinPrice.objects.filter(
-                    cruise=self.cruise,
-                    session=self.selected_session
-                )
-            else:
-                self.fields['cruise_cabin_price'].queryset = CruiseCabinPrice.objects.none()
+        if self.cruise and self.session:
+            self.fields['cruise_cabin_price'].queryset = CruiseCabinPrice.objects.filter(
+                cruise=self.cruise,
+                session=self.session
+            )
+        
+        self.fields['cruise_cabin_price'].label_from_instance = self.label_from_instance
+
+
 
         self.fields['cruise_session'].widget.attrs.update({'onchange': 'this.form.submit();'})
         self.fields['cruise_cabin_price'].widget.attrs.update({'class': 'form-control'})
         self.fields['number_of_passengers'].widget.attrs.update({'class': 'form-control'})
 
-
     def label_from_instance(self, obj):
-        """Override the label for each option in the cruise_session dropdown."""
-        return f"{obj.start_date.strftime('%b %d, %Y')} - {obj.end_date.strftime('%b %d, %Y')}"
+        return f"{obj.cabin_type.name}: €{obj.price}"
 
     def clean(self):
         cleaned_data = super().clean()
@@ -58,17 +63,6 @@ class QuoteForm(forms.ModelForm):
 
         return cleaned_data
 
-    def get_initial_cabin_price(self):
-        if self.initial.get('cruise_cabin_price'):
-            return CruiseCabinPrice.objects.get(id=self.initial['cruise_cabin_price'])
-        return None
-
-    def get_initial_total_price(self):
-        initial_cabin_price = self.get_initial_cabin_price()
-        initial_passengers = self.initial.get('number_of_passengers', 1)
-        if initial_cabin_price:
-            return initial_cabin_price.price * initial_passengers
-        return 0
 
 class QuotePassengerForm(forms.ModelForm):
     class Meta:

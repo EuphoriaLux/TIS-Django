@@ -240,7 +240,7 @@ class CruiseCabinPrice(BaseModel):
     cruise = models.ForeignKey(Cruise, on_delete=models.CASCADE)
     cabin_type = models.ForeignKey(CabinType, on_delete=models.CASCADE)
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    session = models.ForeignKey(CruiseSession, on_delete=models.CASCADE)
+    session = models.ForeignKey(CruiseSession, on_delete=models.CASCADE, null=True, blank=True)
 
     class Meta:
         unique_together = ['cruise', 'cabin_type', 'session']

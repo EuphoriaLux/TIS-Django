@@ -2,7 +2,7 @@
 
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from cruises.models import CruiseCompany, CruiseType, Brand, Cruise, CruiseSession, Equipment, CruiseCabinPrice,CabinType
+from cruises.models import CruiseCompany, CruiseType, Brand, Cruise, CruiseSession, Equipment, CruiseCabinPrice, CabinType, CabinTypeEquipment
 from django.contrib.auth.models import User
 from django.core.files import File
 from django.conf import settings
@@ -80,44 +80,7 @@ class Command(BaseCommand):
             logo='brand_logos/inluxembourg_logo.png'
         )
 
-        # Create or update cruise categories
-
-        self.create_or_update_cabin_type(
-            name='Ruby | 2-Bed Cabin',
-            description='Luxurious 16 m² cabin on the Ruby Deck. Equipped with two single beds or one double bed, a large panoramic window (non-opening), and all VIVA All-Inclusive amenities. Ideal for couples or friends who appreciate comfort and scenic views.',
-            capacity=2,
-            deck='Ruby'
-        )
-        
-        
-        self.create_or_update_cabin_type(
-            name='Ruby | 2-Bed Cabin Rear',
-            description='Spacious 16 m² cabin at the rear of the Ruby Deck. Offers a quiet location with a panoramic rear view, two single beds or one double bed, and all VIVA All-Inclusive services. Perfect for guests desiring a unique perspective and a bit more privacy.',
-            capacity=2,
-            deck='Ruby'
-        )
-        
-        self.create_or_update_cabin_type(
-            name='Diamond | 2-Bed Cabin',
-            description='Exclusive 16 m² cabin on the Diamond Deck, the highest passenger deck. Enjoy superior views through the large panoramic window (non-opening), two single beds or one double bed, and all VIVA All-Inclusive offerings. Ideal for guests who prioritize a prime location.',
-            capacity=2,
-            deck='Diamond'
-        )
-        
-        self.create_or_update_cabin_type(
-            name='Emerald | 2-Bed Cabin',
-            description='Comfortable 16 m² cabin on the Emerald Deck. Furnished with two single beds or one double bed, a large window (non-opening), and all VIVA All-Inclusive amenities. An excellent choice for guests seeking a good balance between location and price.',
-            capacity=2,
-            deck='Emerald'
-        )
-        
-        self.create_or_update_cabin_type(
-            name='Diamond | Suite',
-            description='Generous 24 m² suite on the exclusive Diamond Deck. Enjoy luxurious space, a separate living room, a bedroom with a double bed, a large panoramic window (non-opening), and all VIVA All-Inclusive Premium services. The perfect choice for guests desiring the utmost comfort and exclusivity.',
-            capacity=2,
-            deck='Diamond'
-        )
-
+        # Create or update equipment
         equipment_list = [
             ('Single Beds', 'Einzelbetten', 'Lits simples', 'Two single beds (can be separated upon request)', 'Zwei Einzelbetten (auf Wunsch auseinander gestellt)', 'Deux lits simples (peuvent être séparés sur demande)'),
             ('Window', 'Fenster', 'Fenêtre', 'Window (non-opening)', 'Fenster (nicht zu öffnen)', "Fenêtre (ne s'ouvre pas)"),
@@ -133,11 +96,142 @@ class Command(BaseCommand):
             ('Storage', 'Stauraum', 'Rangement', 'Generous storage space in closets and under the bed', 'Grosszügig bemessener Stauraum in Schränken und unter dem Bett', 'Espace de rangement généreux dans les placards et sous le lit'),
         ]
 
+        equipment_objects = {}
         for item in equipment_list:
-            self.create_or_update_equipment(*item)
+            equipment = self.create_or_update_equipment(*item)
+            equipment_objects[item[0]] = equipment
+
+        self.create_or_update_cabin_type(
+            name='Emerald | 2-Bed Cabin',
+            description='Comfortable 16 m² cabin on the Emerald Deck. Furnished with two single beds or one double bed, a large window (non-opening), and all VIVA All-Inclusive amenities. An excellent choice for guests seeking a good balance between location and price.',
+            capacity=2,
+            deck='Emerald',
+            equipment_list=[
+                (equipment_objects['Single Beds'], 2),
+                (equipment_objects['Window'], 1),
+                (equipment_objects['Seating'], 1),
+                (equipment_objects['Cosmetics'], 1),
+                (equipment_objects['TV'], 1),
+                (equipment_objects['Minibar'], 1),
+                (equipment_objects['Coffee Machine'], 1),
+                (equipment_objects['Hair Dryer'], 1),
+                (equipment_objects['Wi-Fi'], 1),
+                (equipment_objects['Other'], 1),
+                (equipment_objects['Bathroom'], 1),
+                (equipment_objects['Storage'], 1),
+            ]
+        )
+
+        # Create or update cabin types with equipment
+        self.create_or_update_cabin_type(
+            name='Ruby | 2-Bed Cabin',
+            description='Luxurious 16 m² cabin on the Ruby Deck. Equipped with two single beds or one double bed, a large panoramic window (non-opening), and all VIVA All-Inclusive amenities. Ideal for couples or friends who appreciate comfort and scenic views.',
+            capacity=2,
+            deck='Ruby',
+            equipment_list=[
+                (equipment_objects['Single Beds'], 2),
+                (equipment_objects['Window'], 1),
+                (equipment_objects['Seating'], 1),
+                (equipment_objects['Cosmetics'], 1),
+                (equipment_objects['TV'], 1),
+                (equipment_objects['Minibar'], 1),
+                (equipment_objects['Coffee Machine'], 1),
+                (equipment_objects['Hair Dryer'], 1),
+                (equipment_objects['Wi-Fi'], 1),
+                (equipment_objects['Other'], 1),
+                (equipment_objects['Bathroom'], 1),
+                (equipment_objects['Storage'], 1),
+            ]
+        )
+
+        self.create_or_update_cabin_type(
+            name='Ruby | 2-Bed Cabin Rear',
+            description='Luxurious 16 m² cabin on the Ruby Deck. Equipped with two single beds or one double bed, a large panoramic window (non-opening), and all VIVA All-Inclusive amenities. Ideal for couples or friends who appreciate comfort and scenic views.',
+            capacity=2,
+            deck='Ruby',
+            equipment_list=[
+                (equipment_objects['Single Beds'], 2),
+                (equipment_objects['Window'], 1),
+                (equipment_objects['Seating'], 1),
+                (equipment_objects['Cosmetics'], 1),
+                (equipment_objects['TV'], 1),
+                (equipment_objects['Minibar'], 1),
+                (equipment_objects['Coffee Machine'], 1),
+                (equipment_objects['Hair Dryer'], 1),
+                (equipment_objects['Wi-Fi'], 1),
+                (equipment_objects['Other'], 1),
+                (equipment_objects['Bathroom'], 1),
+                (equipment_objects['Storage'], 1),
+            ]
+        )
+
+        self.create_or_update_cabin_type(
+            name='Ruby | 2-Bed Suit',
+            description='Luxurious 16 m² cabin on the Ruby Deck. Equipped with two single beds or one double bed, a large panoramic window (non-opening), and all VIVA All-Inclusive amenities. Ideal for couples or friends who appreciate comfort and scenic views.',
+            capacity=2,
+            deck='Ruby',
+            equipment_list=[
+                (equipment_objects['Single Beds'], 2),
+                (equipment_objects['Window'], 1),
+                (equipment_objects['Seating'], 1),
+                (equipment_objects['Cosmetics'], 1),
+                (equipment_objects['TV'], 1),
+                (equipment_objects['Minibar'], 1),
+                (equipment_objects['Coffee Machine'], 1),
+                (equipment_objects['Hair Dryer'], 1),
+                (equipment_objects['Wi-Fi'], 1),
+                (equipment_objects['Other'], 1),
+                (equipment_objects['Bathroom'], 1),
+                (equipment_objects['Storage'], 1),
+            ]
+        )
+
+
+        self.create_or_update_cabin_type(
+            name='Diamond | 2-Bed Cabin',
+            description='Generous 24 m² suite on the exclusive Diamond Deck. Enjoy luxurious space, a separate living room, a bedroom with a double bed, a large panoramic window (non-opening), and all VIVA All-Inclusive Premium services. The perfect choice for guests desiring the utmost comfort and exclusivity.',
+            capacity=2,
+            deck='Diamond',
+            equipment_list=[
+                (equipment_objects['Single Beds'], 2),
+                (equipment_objects['Window'], 1),
+                (equipment_objects['Seating'], 1),
+                (equipment_objects['Cosmetics'], 1),
+                (equipment_objects['TV'], 1),
+                (equipment_objects['Minibar'], 1),
+                (equipment_objects['Coffee Machine'], 1),
+                (equipment_objects['Hair Dryer'], 1),
+                (equipment_objects['Wi-Fi'], 1),
+                (equipment_objects['Other'], 1),
+                (equipment_objects['Bathroom'], 1),
+                (equipment_objects['Storage'], 1),
+            ]
+        )
+
+        self.create_or_update_cabin_type(
+            name='Diamond | Suite',
+            description='Generous 24 m² suite on the exclusive Diamond Deck. Enjoy luxurious space, a separate living room, a bedroom with a double bed, a large panoramic window (non-opening), and all VIVA All-Inclusive Premium services. The perfect choice for guests desiring the utmost comfort and exclusivity.',
+            capacity=2,
+            deck='Diamond',
+            equipment_list=[
+                (equipment_objects['Single Beds'], 2),
+                (equipment_objects['Window'], 1),
+                (equipment_objects['Seating'], 1),
+                (equipment_objects['Cosmetics'], 1),
+                (equipment_objects['TV'], 1),
+                (equipment_objects['Minibar'], 1),
+                (equipment_objects['Coffee Machine'], 1),
+                (equipment_objects['Hair Dryer'], 1),
+                (equipment_objects['Wi-Fi'], 1),
+                (equipment_objects['Other'], 1),
+                (equipment_objects['Bathroom'], 1),
+                (equipment_objects['Storage'], 1),
+            ]
+        )
+        
+        # Add more cabin types here...
 
         self.stdout.write(self.style.SUCCESS('Database populated/updated successfully!'))
-
 
     def create_or_update_cruise_company(self, name, description, website):
         company, created = CruiseCompany.objects.update_or_create(
@@ -178,8 +272,8 @@ class Command(BaseCommand):
             self.stdout.write(f'Updated brand: {name}')
 
     def create_or_update_equipment(self, name, name_de, name_fr, description, description_de, description_fr):
-        equipment, created = Equipment.objects.get_or_create(
-            name=name,  # 'name' field is for English names (standard)
+        equipment, created = Equipment.objects.update_or_create(
+            name=name,
             defaults={
                 'name_de': name_de,
                 'name_fr': name_fr,
@@ -188,23 +282,39 @@ class Command(BaseCommand):
                 'description_fr': description_fr,
             }
         )
-
         if created:
             self.stdout.write(f'Created equipment: {name}')
         else:
-            # Update all fields if the item already exists
-            equipment.name_de = name_de
-            equipment.name_fr = name_fr
-            equipment.description = description
-            equipment.description_de = description_de
-            equipment.description_fr = description_fr
-            equipment.save()
             self.stdout.write(f'Updated equipment: {name}')
-
         return equipment
 
-    def create_or_update_cruise_cabin_price(self, cruise, cabin_type, price, session):
+    def create_or_update_cabin_type(self, name, description, capacity, deck, equipment_list):
+        cabin_type, created = CabinType.objects.update_or_create(
+            name=name,
+            defaults={
+                'description': description,
+                'capacity': capacity,
+                'deck': deck,
+            }
+        )
+        
+        # Clear existing equipment associations
+        CabinTypeEquipment.objects.filter(cabin_type=cabin_type).delete()
+        
+        # Add new equipment associations
+        for equipment, quantity in equipment_list:
+            CabinTypeEquipment.objects.create(
+                cabin_type=cabin_type,
+                equipment=equipment,
+                quantity=quantity
+            )
+        
+        if created:
+            self.stdout.write(f'Created cabin type: {name}')
+        else:
+            self.stdout.write(f'Updated cabin type: {name}')
 
+    def create_or_update_cruise_cabin_price(self, cruise, cabin_type, price, session):
         cruise_cabin_price, created = CruiseCabinPrice.objects.update_or_create(
             cruise=cruise,
             cabin_type=cabin_type,
@@ -215,18 +325,3 @@ class Command(BaseCommand):
             self.stdout.write(f'Created cruise cabin price: {cruise.name} - {cabin_type.name} - {session.start_date}')
         else:
             self.stdout.write(f'Updated cruise cabin price: {cruise.name} - {cabin_type.name} - {session.start_date}')
-    
-    def create_or_update_cabin_type(self, name, description, capacity, deck, amenities=''):
-        cabin_type, created = CabinType.objects.update_or_create(
-            name=name,
-            defaults={
-                'description': description,
-                'capacity': capacity,
-                'deck': deck,
-                'amenities': amenities
-            }
-        )
-        if created:
-            self.stdout.write(f'Created cabin type: {name}')
-        else:
-            self.stdout.write(f'Updated cabin type: {name}')

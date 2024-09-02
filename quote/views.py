@@ -25,6 +25,8 @@ from django.forms import formset_factory
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit, Div, HTML
 
+from django.http import Http404
+
 logger = logging.getLogger(__name__)
 
 def quote_confirmation(request):
@@ -70,46 +72,36 @@ def generate_quote(request, booking_id):
     pdf = generate_quote_pdf(booking)
     return FileResponse(pdf, as_attachment=True, filename=f'quote_{booking.id}.pdf')
 
-from django.shortcuts import get_object_or_404, render, redirect
-from django.contrib.auth.models import AnonymousUser
-from django.utils import timezone
-from datetime import timedelta
-from .forms import QuoteForm
-from .models import Quote, QuotePassenger
-from cruises.models import Cruise, CruiseSession, CruiseCabinPrice
-
 def quote_cruise(request, cruise_id):
-    cruise = get_object_or_404(Cruise, id=cruise_id)
-    session_id = request.GET.get('session')
-    cabin_id = request.GET.get('cabin')
-    
-    initial_data = {}
+    cruise = get_object_or_404(Cruise, pk=cruise_id)
+    selected_session_id = request.GET.get('session')
+    selected_cabin_price_id = request.GET.get('cabin_price')
+
     selected_session = None
     selected_cabin_price = None
+
+    if selected_session_id:
+        selected_session = get_object_or_404(CruiseSession, pk=selected_session_id, cruise=cruise)
     
-    if session_id:
-        selected_session = get_object_or_404(CruiseSession, id=session_id, cruise=cruise)
-        initial_data['cruise_session'] = selected_session.id
-        
-        if cabin_id:
-            try:
-                selected_cabin_price = CruiseCabinPrice.objects.get(id=cabin_id, cruise=cruise, session=selected_session)
-            except CruiseCabinPrice.DoesNotExist:
-                selected_cabin_price = CruiseCabinPrice.objects.filter(cruise=cruise, session=selected_session).first()
-        else:
-            selected_cabin_price = CruiseCabinPrice.objects.filter(cruise=cruise, session=selected_session).first()
-        
-        if selected_cabin_price:
-            initial_data['cruise_cabin_price'] = selected_cabin_price.id
+    if selected_cabin_price_id and selected_session:
+        selected_cabin_price = get_object_or_404(CruiseCabinPrice, pk=selected_cabin_price_id, cruise=cruise, session=selected_session)
+
+    initial_data = {
+        'cruise_session': selected_session,
+        'cruise_cabin_price': selected_cabin_price,
+        'number_of_passengers': 1,
+    }
 
     if request.method == 'POST':
         form = QuoteForm(request.POST, cruise=cruise, session=selected_session, initial=initial_data)
         if form.is_valid():
             quote = form.save(commit=False)
-            quote.user = request.user if not isinstance(request.user, AnonymousUser) else None
-            quote.expiration_date = timezone.now() + timedelta(days=30)
+            quote.cruise_session = form.cleaned_data['cruise_session']
+            quote.cruise_cabin_price = form.cleaned_data['cruise_cabin_price']
+            quote.total_price = quote.cruise_cabin_price.price * quote.number_of_passengers
             quote.save()
             
+            # Create QuotePassenger
             QuotePassenger.objects.create(
                 quote=quote,
                 first_name=form.cleaned_data['first_name'],
@@ -117,16 +109,21 @@ def quote_cruise(request, cruise_id):
                 email=form.cleaned_data['email'],
                 phone=form.cleaned_data['phone']
             )
-            
+
             return redirect('quote:quote_confirmation')
     else:
         form = QuoteForm(cruise=cruise, session=selected_session, initial=initial_data)
-    
+
+    # Get all cabin prices for this cruise and session
+    cabin_prices = CruiseCabinPrice.objects.filter(cruise=cruise, session=selected_session) if selected_session else []
+
     context = {
         'cruise': cruise,
         'form': form,
         'selected_session': selected_session,
         'selected_cabin_price': selected_cabin_price,
-        'initial_total_price': form.get_initial_total_price(),
+        'initial_total_price': selected_cabin_price.price if selected_cabin_price else 0,
+        'cabin_prices': cabin_prices,
     }
+
     return render(request, 'quote/quote_cruise.html', context)

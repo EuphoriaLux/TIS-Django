@@ -10,19 +10,27 @@ from django.contrib import messages
 from django.shortcuts import redirect
 from .models import CruiseCompany, CruiseType, Brand, Cruise, CruiseSession, Equipment, CabinType, CruiseCabinPrice, CruiseItinerary, Port, Excursion, CabinTypeEquipment
 import logging
+from django.db import transaction
 
 logger = logging.getLogger(__name__)
 
 class CruiseSessionInline(admin.TabularInline):
     model = CruiseSession
     extra = 1
-    min_num = 1
-    fields = ('start_date', 'end_date', 'capacity', 'is_summer_special', 'summer_special_type')
+    min_num = 0  # Allow creation of cruise without sessions initially
+
+class CruiseCabinPriceInlineFormSet(forms.BaseInlineFormSet):
+    def clean(self):
+        super().clean()
+        for form in self.forms:
+            if form.cleaned_data and not form.cleaned_data.get('DELETE'):
+                if not form.cleaned_data.get('session'):
+                    form.cleaned_data['session'] = None
 
 class CruiseCabinPriceInline(admin.TabularInline):
     model = CruiseCabinPrice
+    formset = CruiseCabinPriceInlineFormSet
     extra = 1
-    min_num = 1
     fields = ('cabin_type', 'price', 'session')
 
 class CruiseItineraryInline(admin.TabularInline):
@@ -63,6 +71,12 @@ class CabinTypeAdminForm(forms.ModelForm):
             for equip in equipment:
                 CabinTypeEquipment.objects.create(cabin_type=cabin_type, equipment=equip)
         return cabin_type
+
+
+
+
+
+
 
 @admin.register(Cruise)
 class CruiseAdmin(admin.ModelAdmin):
@@ -171,6 +185,78 @@ class CruiseAdmin(admin.ModelAdmin):
         self.message_user(request, f"{len(queryset)} cruise(s) duplicated successfully.")
     duplicate_cruise.short_description = "Duplicate selected cruises"
 
+    def save_formset(self, request, form, formset, change):
+        instances = formset.save(commit=False)
+        for instance in instances:
+            if isinstance(instance, CruiseCabinPrice) and not instance.session:
+                instance.session = None
+            instance.save()
+        formset.save_m2m()              
+
+    @transaction.atomic
+    def save_model(self, request, obj, form, change):
+        is_new = obj.pk is None
+        super().save_model(request, obj, form, change)
+        
+        if is_new:
+            # This is a new cruise, so we'll wait for the inline formsets to be saved
+            # before we do anything with sessions or cabin prices
+            return
+
+        # For existing cruises, ensure at least one session exists
+        if not obj.sessions.exists():
+            CruiseSession.objects.create(
+                cruise=obj,
+                start_date=timezone.now().date(),
+                end_date=timezone.now().date() + timezone.timedelta(days=7),
+                capacity=100  # Default capacity
+            )
+
+    @transaction.atomic
+    def save_formset(self, request, form, formset, change):
+        instances = formset.save(commit=False)
+        
+        # First, save all instances except CruiseCabinPrice
+        for instance in instances:
+            if not isinstance(instance, CruiseCabinPrice):
+                instance.save()
+        
+        # Now handle CruiseCabinPrice instances
+        cruise = form.instance
+        default_session = cruise.sessions.first()
+        
+        for instance in instances:
+            if isinstance(instance, CruiseCabinPrice):
+                if not instance.session and default_session:
+                    instance.session = default_session
+                instance.save()
+        
+        formset.save_m2m()
+
+        # If this is a new cruise and we've just created the first session,
+        # assign all existing cabin prices to this session
+        if cruise.sessions.count() == 1 and CruiseCabinPrice.objects.filter(cruise=cruise, session__isnull=True).exists():
+            CruiseCabinPrice.objects.filter(cruise=cruise, session__isnull=True).update(session=default_session)
+
+
+    def save_related(self, request, form, formsets, change):
+        super().save_related(request, form, formsets, change)
+        
+        cruise = form.instance
+        
+        # If no sessions were created, create a default one
+        if not cruise.sessions.exists():
+            CruiseSession.objects.create(
+                cruise=cruise,
+                start_date=timezone.now().date(),
+                end_date=timezone.now().date() + timezone.timedelta(days=7),
+                capacity=100  # Default capacity
+            )
+        
+        # Assign any unassigned cabin prices to the first session
+        default_session = cruise.sessions.first()
+        if default_session:
+            CruiseCabinPrice.objects.filter(cruise=cruise, session__isnull=True).update(session=default_session)
 @admin.register(CruiseSession)
 class CruiseSessionAdmin(admin.ModelAdmin):
     list_display = ('cruise', 'start_date', 'end_date', 'capacity', 'is_summer_special', 'get_cabin_prices')
