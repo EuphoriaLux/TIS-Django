@@ -8,6 +8,8 @@ from django.core.files import File
 from django.conf import settings
 import os
 from decimal import Decimal
+from datetime import timedelta
+from datetime import date
 
 class Command(BaseCommand):
     help = 'Populate the database with sample data and update existing records'
@@ -166,7 +168,7 @@ class Command(BaseCommand):
         )
 
         self.create_or_update_cabin_type(
-            name='Ruby | 2-Bed Suit',
+            name='Ruby | Junior Suite',
             description='Luxurious 16 m² cabin on the Ruby Deck. Equipped with two single beds or one double bed, a large panoramic window (non-opening), and all VIVA All-Inclusive amenities. Ideal for couples or friends who appreciate comfort and scenic views.',
             capacity=2,
             deck='Ruby',
@@ -185,7 +187,6 @@ class Command(BaseCommand):
                 (equipment_objects['Storage'], 1),
             ]
         )
-
 
         self.create_or_update_cabin_type(
             name='Diamond | 2-Bed Cabin',
@@ -209,7 +210,28 @@ class Command(BaseCommand):
         )
 
         self.create_or_update_cabin_type(
-            name='Diamond | Suite',
+            name='Diamond | Junior Suite',
+            description='Generous 24 m² suite on the exclusive Diamond Deck. Enjoy luxurious space, a separate living room, a bedroom with a double bed, a large panoramic window (non-opening), and all VIVA All-Inclusive Premium services. The perfect choice for guests desiring the utmost comfort and exclusivity.',
+            capacity=2,
+            deck='Diamond',
+            equipment_list=[
+                (equipment_objects['Single Beds'], 2),
+                (equipment_objects['Window'], 1),
+                (equipment_objects['Seating'], 1),
+                (equipment_objects['Cosmetics'], 1),
+                (equipment_objects['TV'], 1),
+                (equipment_objects['Minibar'], 1),
+                (equipment_objects['Coffee Machine'], 1),
+                (equipment_objects['Hair Dryer'], 1),
+                (equipment_objects['Wi-Fi'], 1),
+                (equipment_objects['Other'], 1),
+                (equipment_objects['Bathroom'], 1),
+                (equipment_objects['Storage'], 1),
+            ]
+        )
+
+        self.create_or_update_cabin_type(
+            name='Diamond | Balcon Suite',
             description='Generous 24 m² suite on the exclusive Diamond Deck. Enjoy luxurious space, a separate living room, a bedroom with a double bed, a large panoramic window (non-opening), and all VIVA All-Inclusive Premium services. The perfect choice for guests desiring the utmost comfort and exclusivity.',
             capacity=2,
             deck='Diamond',
@@ -229,7 +251,8 @@ class Command(BaseCommand):
             ]
         )
         
-        # Add more cabin types here...
+        # create or update cruises
+        self.create_or_update_cruises()
 
         self.stdout.write(self.style.SUCCESS('Database populated/updated successfully!'))
 
@@ -325,3 +348,136 @@ class Command(BaseCommand):
             self.stdout.write(f'Created cruise cabin price: {cruise.name} - {cabin_type.name} - {session.start_date}')
         else:
             self.stdout.write(f'Updated cruise cabin price: {cruise.name} - {cabin_type.name} - {session.start_date}')
+
+    def create_or_update_cruises(self):
+        cruises_data = [
+            {
+                'name': 'Cityhopping from Antwerpen',
+                'description': 'Explore the heart of Europe along the beautiful Danube.',
+                'cruise_type': 'Rivers',
+                'company': 'Viva Cruises',
+                'brand': 'Fluss.lu',
+                'image_url': 'https://example.com/danube_delights.jpg',
+                'sessions': [
+                    {
+                        'start_date': date(2025, 2, 8),
+                        'end_date': date(2025, 2, 12),
+                        'capacity': 180,
+                        'prices': {
+                            'Emerald | 2-Bed Cabin': 799,
+                            'Ruby | 2-Bed Cabin': 929,
+                            'Ruby | Junior Suite': 1029,
+                            'Diamond | 2-Bed Cabin': 999,
+                            'Diamond | Junior Suite': 1199, 
+                            'Diamond | Balcon Suite': 1299,
+                        }
+                    },
+                    {
+                        'start_date': date(2025, 2, 12),
+                        'end_date': date(2025, 2, 16),
+                        'capacity': 180,
+                        'prices': {
+                            'Emerald | 2-Bed Cabin': 799,
+                            'Ruby | 2-Bed Cabin': 929,
+                            'Ruby | Junior Suite': 1029,
+                            'Diamond | 2-Bed Cabin': 999,
+                            'Diamond | Junior Suite': 1199, 
+                            'Diamond | Balcon Suite': 1299,
+                        }
+                    },
+                    {
+                        'start_date': date(2025, 2, 20),
+                        'end_date': date(2025, 2, 24),
+                        'capacity': 180,
+                        'prices': {
+                            'Emerald | 2-Bed Cabin': 799,
+                            'Ruby | 2-Bed Cabin': 929,
+                            'Ruby | Junior Suite': 1029,
+                            'Diamond | 2-Bed Cabin': 999,
+                            'Diamond | Junior Suite': 1199, 
+                            'Diamond | Balcon Suite': 1299,
+                        }
+                    }
+                ]
+            },
+            {
+                'name': 'Voyage in Donau Delta',
+                'description': 'Explore the heart of Europe along the beautiful Danube.',
+                'cruise_type': 'Rivers',
+                'company': 'Viva Cruises',
+                'brand': 'Fluss.lu',
+                'image_url': 'https://example.com/danube_delights.jpg',
+                'sessions': [
+                    {
+                        'start_date': date(2025, 5, 8),
+                        'end_date': date(2025, 5, 24),
+                        'capacity': 180,
+                        'prices': {
+                            'Emerald | 2-Bed Cabin': 4499,
+                            'Ruby | 2-Bed Cabin': 4999,
+                            'Diamond | 2-Bed Cabin': 5399,
+                            'Diamond | Junior Suite': 6699, 
+                        }
+                    },
+                ]
+            },
+            {
+                'name': 'Cities in the Netherlands and Belgium',
+                'description': 'Explore the heart of Europe along the beautiful Danube.',
+                'cruise_type': 'Rivers',
+                'company': 'Viva Cruises',
+                'brand': 'Fluss.lu',
+                'image_url': 'https://cdn.viva-cruises.com/image/crop/1366x1024/52eb4b1a-e616-4b5e-a0e8-7e61955529e2/auszeit-in-amsterdam.jpeg',
+                'sessions': [
+                    {
+                        'start_date': date(2025, 8, 6),
+                        'end_date': date(2025, 8, 13),
+                        'capacity': 180,
+                        'prices': {
+                            'Emerald | 2-Bed Cabin': 2199,
+                            'Ruby | 2-Bed Cabin': 2999,
+                            'Diamond | 2-Bed Cabin': 3199,
+                            'Diamond | Junior Suite': 3799, 
+                        }
+                    },
+                ]
+            }
+        ]
+
+        for cruise_data in cruises_data:
+            cruise_type = CruiseType.objects.get(name=cruise_data['cruise_type'])
+            company = CruiseCompany.objects.get(name=cruise_data['company'])
+            brand = Brand.objects.get(name=cruise_data['brand'])
+
+            cruise, created = Cruise.objects.update_or_create(
+                name=cruise_data['name'],
+                defaults={
+                    'description': cruise_data['description'],
+                    'cruise_type': cruise_type,
+                    'company': company,
+                    'brand': brand,
+                    'image_url': cruise_data['image_url'],
+                }
+            )
+
+            if created:
+                self.stdout.write(f'Created cruise: {cruise.name}')
+            else:
+                self.stdout.write(f'Updated cruise: {cruise.name}')
+
+            for session_data in cruise_data['sessions']:
+                session, session_created = CruiseSession.objects.update_or_create(
+                    cruise=cruise,
+                    start_date=session_data['start_date'],
+                    end_date=session_data['end_date'],
+                    defaults={'capacity': session_data['capacity']}
+                )
+
+                for cabin_name, price in session_data['prices'].items():
+                    cabin_type = CabinType.objects.get(name=cabin_name)
+                    self.create_or_update_cruise_cabin_price(cruise, cabin_type, Decimal(price), session)
+
+                if session_created:
+                    self.stdout.write(f'Created session for {cruise.name}: {session.start_date} to {session.end_date}')
+                else:
+                    self.stdout.write(f'Updated session for {cruise.name}: {session.start_date} to {session.end_date}')

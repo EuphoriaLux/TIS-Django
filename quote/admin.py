@@ -28,8 +28,8 @@ class QuoteAdmin(admin.ModelAdmin):
     passenger_display.short_description = 'Passenger'
 
     def generate_quote_button(self, obj):
-        url = f'generate_quote/{obj.pk}/'
-        return format_html('<a class="button" href="{}">Generate Quote</a>', url)
+        url = f'create-quote/{obj.pk}/'
+        return format_html('<a class="button" href="{}">Create Quote</a>', url)
     generate_quote_button.short_description = 'Quote'
     generate_quote_button.allow_tags = True
 
@@ -43,7 +43,7 @@ class QuoteAdmin(admin.ModelAdmin):
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [
-            path('generate_quote/<int:quote_id>/', self.admin_site.admin_view(self.generate_quote_view), name='generate_quote'),
+            path('create-quote/<int:quote_id>/', self.admin_site.admin_view(self.generate_quote_view), name='generate_quote'),
         ]
         return custom_urls + urls
 

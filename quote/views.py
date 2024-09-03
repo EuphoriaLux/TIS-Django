@@ -3,11 +3,7 @@ from django import forms
 from django.shortcuts import get_object_or_404, render, redirect
 from django.views.decorators.http import require_http_methods
 from cruises.models import Cruise, CruiseSession, CruiseCabinPrice
-from .forms import (
-    QuoteForm, QuotePassengerForm, 
-    PassengerInfoForm, CruiseSelectionForm, ConfirmationForm,
-    PassengerCountForm, PassengerInfoFormSet
-)
+from .forms import QuoteForm
 from .models import Quote, QuotePassenger
 from django.contrib.auth.models import AnonymousUser
 from .utils import generate_quote_pdf
@@ -16,21 +12,14 @@ from django.http import JsonResponse
 import json
 from django.utils import timezone
 import datetime
-from formtools.wizard.views import SessionWizardView
 from django.core.files.storage import DefaultStorage
 from django.core.exceptions import ValidationError
 from django.urls import reverse
 import logging
 from django.forms import formset_factory
-from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Submit, Div, HTML
-
 from django.http import Http404
 
 logger = logging.getLogger(__name__)
-
-def quote_confirmation(request):
-    return render(request, 'quote/quote_confirmation.html')
 
 @require_http_methods(["POST"])
 def create_quote(request, cruise_id):
@@ -67,11 +56,6 @@ def create_quote(request, cruise_id):
     except Exception as e:
         return JsonResponse({'success': False, 'errors': str(e)})
 
-def generate_quote(request, booking_id):
-    booking = get_object_or_404(Quote, id=booking_id)
-    pdf = generate_quote_pdf(booking)
-    return FileResponse(pdf, as_attachment=True, filename=f'quote_{booking.id}.pdf')
-
 def quote_cruise(request, cruise_id):
     cruise = get_object_or_404(Cruise, pk=cruise_id)
     selected_session_id = request.GET.get('session')
@@ -99,6 +83,10 @@ def quote_cruise(request, cruise_id):
             quote.cruise_session = form.cleaned_data['cruise_session']
             quote.cruise_cabin_price = form.cleaned_data['cruise_cabin_price']
             quote.total_price = quote.cruise_cabin_price.price * quote.number_of_passengers
+            
+            # Set the expiration date to 30 days from now (or any other duration you prefer)
+            quote.expiration_date = timezone.now() + timedelta(days=30)
+            
             quote.save()
             
             # Create QuotePassenger
@@ -114,16 +102,15 @@ def quote_cruise(request, cruise_id):
     else:
         form = QuoteForm(cruise=cruise, session=selected_session, initial=initial_data)
 
-    # Get all cabin prices for this cruise and session
-    cabin_prices = CruiseCabinPrice.objects.filter(cruise=cruise, session=selected_session) if selected_session else []
-
     context = {
         'cruise': cruise,
         'form': form,
         'selected_session': selected_session,
         'selected_cabin_price': selected_cabin_price,
         'initial_total_price': selected_cabin_price.price if selected_cabin_price else 0,
-        'cabin_prices': cabin_prices,
     }
 
     return render(request, 'quote/quote_cruise.html', context)
+
+def quote_confirmation(request):
+    return render(request, 'quote/quote_confirmation.html')
