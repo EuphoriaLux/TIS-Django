@@ -34,6 +34,44 @@ class Quote(BaseModel):
 
     objects = QuoteManager()
 
+    def can_convert_to_booking(self):
+        return self.status == self.Status.APPROVED and not hasattr(self, 'booking')
+
+    def convert_to_booking(self):
+        if not self.can_convert_to_booking():
+            raise ValueError("This quote cannot be converted to a booking.")
+        
+        from bookings.models import Booking  # Import here to avoid circular import
+        
+        booking = Booking.objects.create(
+            user=self.user,
+            quote=self,
+            cruise_session=self.cruise_session,
+            cruise_cabin_price=self.cruise_cabin_price,
+            total_price=self.total_price,
+            status=Booking.Status.CONFIRMED
+        )
+        
+        # Convert QuotePassengers to Passengers
+        for quote_passenger in self.passengers.all():
+            booking.passengers.create(
+                first_name=quote_passenger.first_name,
+                last_name=quote_passenger.last_name,
+                email=quote_passenger.email,
+                phone=quote_passenger.phone,
+                # Add other fields as necessary
+            )
+        
+        # Convert QuoteAdditionalServices to BookingAdditionalServices
+        for quote_service in self.additional_services.all():
+            booking.additional_services.create(
+                service_name=quote_service.service_name,
+                description=quote_service.description,
+                price=quote_service.price
+            )
+        
+        return booking
+
     def __str__(self):
         passenger = self.passengers.first()
         passenger_name = f"{passenger.first_name} {passenger.last_name}" if passenger else "No passenger"
@@ -50,6 +88,7 @@ class Quote(BaseModel):
     def mark_as_expired(self):
         self.status = self.Status.EXPIRED
         self.save()
+    
 
 class QuotePassenger(models.Model):
     quote = models.ForeignKey(Quote, related_name='passengers', on_delete=models.CASCADE)

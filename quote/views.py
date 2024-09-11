@@ -12,12 +12,19 @@ from django.http import JsonResponse
 import json
 from django.utils import timezone
 import datetime
+from datetime import datetime, timedelta
 from django.core.files.storage import DefaultStorage
 from django.core.exceptions import ValidationError
 from django.urls import reverse
 import logging
 from django.forms import formset_factory
 from django.http import Http404
+
+# quotes/views.py
+
+from django.contrib.admin.views.decorators import staff_member_required
+from django.urls import path
+from .models import Quote
 
 logger = logging.getLogger(__name__)
 
@@ -114,3 +121,17 @@ def quote_cruise(request, cruise_id):
 
 def quote_confirmation(request):
     return render(request, 'quote/quote_confirmation.html')
+
+@staff_member_required
+def convert_quote_to_booking(request, quote_id):
+    quote = get_object_or_404(Quote, id=quote_id)
+    if quote.can_convert_to_booking():
+        try:
+            booking = quote.convert_to_booking()
+            messages.success(request, f"Quote {quote.id} successfully converted to Booking {booking.id}")
+        except Exception as e:
+            messages.error(request, f"Error converting Quote {quote.id} to Booking: {str(e)}")
+    else:
+        messages.warning(request, f"Quote {quote.id} cannot be converted to a booking.")
+    return redirect('admin:quotes_quote_change', quote_id)
+

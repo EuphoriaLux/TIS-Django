@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'formtools',
     'crispy_forms',
     'crispy_bootstrap4',
+    'bookings',
 ]
 
 MIDDLEWARE = [

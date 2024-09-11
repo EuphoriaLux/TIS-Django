@@ -1,12 +1,13 @@
 # quote/admin.py
 
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.utils.html import format_html
 from django.urls import path
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
 from .models import Quote, QuotePassenger, QuoteAdditionalService
 from .utils import generate_quote_pdf
+from .views import convert_quote_to_booking
 
 
 class QuotePassengerInline(admin.StackedInline):
@@ -44,8 +45,40 @@ class QuoteAdmin(admin.ModelAdmin):
         urls = super().get_urls()
         custom_urls = [
             path('create-quote/<int:quote_id>/', self.admin_site.admin_view(self.generate_quote_view), name='generate_quote'),
+            path('<int:quote_id>/convert/', self.admin_site.admin_view(convert_quote_to_booking), name='convert_quote_to_booking'),
         ]
         return custom_urls + urls
+    
+    actions = ['convert_to_booking']
+
+    def convert_to_booking(self, request, queryset):
+        converted = 0
+        for quote in queryset:
+            if quote.can_convert_to_booking():
+                try:
+                    booking = quote.convert_to_booking()
+                    converted += 1
+                    self.message_user(
+                        request,
+                        f"Quote {quote.id} successfully converted to Booking {booking.id}",
+                        messages.SUCCESS
+                    )
+                except Exception as e:
+                    self.message_user(
+                        request,
+                        f"Error converting Quote {quote.id} to Booking: {str(e)}",
+                        messages.ERROR
+                    )
+            else:
+                self.message_user(
+                    request,
+                    f"Quote {quote.id} cannot be converted to a booking.",
+                    messages.WARNING
+                )
+        
+        if converted:
+            self.message_user(request, f"{converted} quote(s) were converted to bookings.", messages.SUCCESS)
+    convert_to_booking.short_description = "Convert selected quotes to bookings"
 
 @admin.register(QuotePassenger)
 class QuotePassengerAdmin(admin.ModelAdmin):
