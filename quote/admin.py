@@ -2,7 +2,7 @@
 
 from django.contrib import admin, messages
 from django.utils.html import format_html
-from django.urls import path
+from django.urls import path, reverse
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
 from .models import Quote, QuotePassenger, QuoteAdditionalService
@@ -16,10 +16,17 @@ class QuotePassengerInline(admin.StackedInline):
 
 @admin.register(Quote)
 class QuoteAdmin(admin.ModelAdmin):
-    list_display = ('passenger_display', 'cruise_session', 'total_price', 'status', 'created_at', 'generate_quote_button')
+    list_display = ('passenger_display', 'cruise_session', 'total_price', 'status', 'created_at', 'booking_link', 'generate_quote_button')
     list_filter = ('status', 'created_at')
     search_fields = ('passengers__first_name', 'passengers__last_name', 'passengers__email', 'cruise_session__cruise__name')
     inlines = [QuotePassengerInline]
+
+    def booking_link(self, obj):
+        if hasattr(obj, 'booking'):
+            url = reverse("admin:bookings_booking_change", args=[obj.booking.id])
+            return format_html('<a href="{}">Booking {}</a>', url, obj.booking.id)
+        return 'No Booking'
+    booking_link.short_description = 'Booking'
 
     def passenger_display(self, obj):
         passenger = obj.passengers.first()

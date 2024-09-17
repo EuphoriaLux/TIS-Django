@@ -18,7 +18,7 @@ class BookingExcursionInline(admin.TabularInline):
 
 @admin.register(Booking)
 class BookingAdmin(admin.ModelAdmin):
-    list_display = ('id', 'cruise_link', 'user', 'status', 'total_price', 'is_paid', 'passenger_count', 'created_at')
+    list_display = ('id', 'quote_link', 'cruise_link', 'user', 'status', 'total_price', 'is_paid', 'passenger_count', 'created_at')
     list_filter = ('status', 'is_paid', 'cruise_session__cruise', 'created_at')
     search_fields = ('user__username', 'cruise_session__cruise__name', 'passengers__first_name', 'passengers__last_name')
     inlines = [PassengerInline, BookingAdditionalServiceInline, BookingExcursionInline]
@@ -32,6 +32,13 @@ class BookingAdmin(admin.ModelAdmin):
     def passenger_count(self, obj):
         return obj.passenger_count
     passenger_count.short_description = 'Passengers'
+
+    def quote_link(self, obj):
+        if obj.quote:
+            url = reverse("admin:quote_quote_change", args=[obj.quote.id])
+            return format_html('<a href="{}">Quote {}</a>', url, obj.quote.id)
+        return 'No Quote'
+    quote_link.short_description = 'Quote'
 
 @admin.register(Passenger)
 class PassengerAdmin(admin.ModelAdmin):

@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from django.utils import timezone
 from cruises.models import CruiseSession, CruiseCabinPrice, Cruise
-from quote.models import Quote
+
 
 class Booking(models.Model):
     class Status(models.TextChoices):
@@ -13,7 +13,13 @@ class Booking(models.Model):
         CANCELLED = 'cancelled', 'Cancelled'
 
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    quote = models.OneToOneField(Quote, on_delete=models.SET_NULL, null=True, blank=True)
+    quote = models.OneToOneField(
+    'quote.Quote',  # Use a string reference
+    on_delete=models.SET_NULL,
+    null=True,
+    blank=True,
+    related_name='booking'
+    )
     cruise_session = models.ForeignKey(CruiseSession, on_delete=models.CASCADE)
     cruise_cabin_price = models.ForeignKey(CruiseCabinPrice, on_delete=models.SET_NULL, null=True, blank=True)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
@@ -60,7 +66,7 @@ class BookingAdditionalService(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
-        return f"{self.service_name} for Booking: {self.booking.id}"
+        return f"Booking {self.id} (Quote {self.quote.id if self.quote else 'N/A'}) for {self.cruise_session.cruise.name}"
 
 class BookingExcursion(models.Model):
     booking = models.ForeignKey(Booking, on_delete=models.CASCADE, related_name='excursions')

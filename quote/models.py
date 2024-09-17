@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 from cruises.models import BaseModel, CruiseSession, CruiseCabinPrice
 from django.utils import timezone
+from django.db import transaction
 
 class QuoteManager(models.Manager):
     def get_active_quotes(self):
@@ -35,42 +36,59 @@ class Quote(BaseModel):
     objects = QuoteManager()
 
     def can_convert_to_booking(self):
-        return self.status == self.Status.APPROVED and not hasattr(self, 'booking')
+        # Check if a booking already exists for this quote
+        if hasattr(self, 'booking'):
+            return False  # Booking already exists
+
+        # Check if the quote is expired
+        if self.is_expired():
+            return False
+
+        # Check if the quote status allows conversion
+        if self.status not in [self.Status.PENDING, self.Status.APPROVED]:
+            return False
+
+        # Additional conditions can be added here
+        return True
 
     def convert_to_booking(self):
         if not self.can_convert_to_booking():
-            raise ValueError("This quote cannot be converted to a booking.")
-        
-        from bookings.models import Booking  # Import here to avoid circular import
-        
-        booking = Booking.objects.create(
-            user=self.user,
-            quote=self,
-            cruise_session=self.cruise_session,
-            cruise_cabin_price=self.cruise_cabin_price,
-            total_price=self.total_price,
-            status=Booking.Status.CONFIRMED
-        )
-        
-        # Convert QuotePassengers to Passengers
-        for quote_passenger in self.passengers.all():
-            booking.passengers.create(
-                first_name=quote_passenger.first_name,
-                last_name=quote_passenger.last_name,
-                email=quote_passenger.email,
-                phone=quote_passenger.phone,
-                # Add other fields as necessary
+            raise Exception(f"Quote {self.id} cannot be converted to a booking")
+
+        # Import inside the method to avoid circular import
+        from bookings.models import Booking, Passenger as BookingPassenger
+
+        with transaction.atomic():
+            # Create the booking
+            booking = Booking.objects.create(
+                user=self.user,
+                quote=self,
+                cruise_session=self.cruise_session,
+                cruise_cabin_price=self.cruise_cabin_price,
+                total_price=self.total_price,
+                status=Booking.Status.PENDING,
+                is_paid=False,
             )
-        
-        # Convert QuoteAdditionalServices to BookingAdditionalServices
-        for quote_service in self.additional_services.all():
-            booking.additional_services.create(
-                service_name=quote_service.service_name,
-                description=quote_service.description,
-                price=quote_service.price
-            )
-        
-        return booking
+
+            # Copy passengers from Quote to Booking
+            for quote_passenger in self.passengers.all():
+                BookingPassenger.objects.create(
+                    booking=booking,
+                    first_name=quote_passenger.first_name,
+                    last_name=quote_passenger.last_name,
+                    email=quote_passenger.email,
+                    phone=quote_passenger.phone,
+                    # You may need to collect or handle these fields properly
+                    date_of_birth=timezone.now().date(),  # Placeholder
+                    passport_number='UNKNOWN',            # Placeholder
+                    passport_expiry_date=timezone.now().date(),  # Placeholder
+                )
+
+            # Update quote status
+            self.status = self.Status.APPROVED
+            self.save()
+
+            return booking
 
     def __str__(self):
         passenger = self.passengers.first()
