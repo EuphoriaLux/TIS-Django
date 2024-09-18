@@ -36,10 +36,9 @@ class QuoteAdmin(admin.ModelAdmin):
     passenger_display.short_description = 'Passenger'
 
     def generate_quote_button(self, obj):
-        url = f'create-quote/{obj.pk}/'
+        url = reverse('admin:generate_quote', args=[obj.pk])
         return format_html('<a class="button" href="{}">Create Quote</a>', url)
     generate_quote_button.short_description = 'Quote'
-    generate_quote_button.allow_tags = True
 
     def generate_quote_view(self, request, quote_id):
         quote = get_object_or_404(Quote, id=quote_id)
