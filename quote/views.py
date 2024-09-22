@@ -19,63 +19,115 @@ from django.urls import reverse
 import logging
 from django.forms import formset_factory
 from django.http import Http404
-
-# quotes/views.py
+from django.db import transaction
 
 from django.contrib.admin.views.decorators import staff_member_required
 from django.urls import path
-from .models import Quote
+
 
 logger = logging.getLogger(__name__)
 
-@require_http_methods(["POST"])
+@require_http_methods(["GET", "POST"])
 def create_quote(request, cruise_id):
-    data = json.loads(request.body)
-    session_id = data.get('session_id')
-    category_id = data.get('category_id')
-    passenger_data = data.get('passenger', {})
+    if request.method == 'GET':
+        # Handle fetching cabin prices based on session_id
+        session_id = request.GET.get('session_id')
+        if not session_id:
+            return JsonResponse({'success': False, 'errors': 'No session_id provided'}, status=400)
+        try:
+            session = CruiseSession.objects.get(id=session_id, cruise_id=cruise_id)
+            cabin_prices = CruiseCabinPrice.objects.filter(cruise_id=cruise_id, session=session).select_related('cabin_type')
+            cabin_prices_data = [
+                {
+                    'id': cp.id,
+                    'label': f"{cp.cabin_type.name}: €{cp.price}",
+                } for cp in cabin_prices
+            ]
+            return JsonResponse({'success': True, 'cabin_prices': cabin_prices_data})
+        except CruiseSession.DoesNotExist:
+            return JsonResponse({'success': False, 'errors': 'Invalid session_id'}, status=400)
+    
+    elif request.method == 'POST':
+        # Handle quote creation via AJAX
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'errors': 'Invalid JSON data'}, status=400)
+        
+        session_id = data.get('session_id')
+        category_id = data.get('category_id')
+        passenger_data = data.get('passenger', {})
+        number_of_passengers = data.get('number_of_passengers', 1)
+    
+        try:
+            # Fetch the cruise object
+            cruise = get_object_or_404(Cruise, pk=cruise_id)
+            
+            # Initialize the form with provided data
+            form = QuoteForm(data={
+                'cruise_session': session_id,
+                'cruise_cabin_price': category_id,
+                'number_of_passengers': number_of_passengers,
+                'first_name': passenger_data.get('first_name', ''),
+                'last_name': passenger_data.get('last_name', ''),
+                'email': passenger_data.get('email', ''),
+                'phone': passenger_data.get('phone', ''),
+            }, cruise=cruise)
+            
+            if form.is_valid():
+                with transaction.atomic():
+                    quote = form.save(commit=False)
+                    quote.user = request.user if not isinstance(request.user, AnonymousUser) else None
+                    quote.total_price = quote.cruise_cabin_price.price * quote.number_of_passengers
+                    quote.expiration_date = timezone.now() + timedelta(days=30)
+                    quote.save()
+                    
+                    # Create QuotePassenger
+                    QuotePassenger.objects.create(
+                        quote=quote,
+                        first_name=form.cleaned_data['first_name'],
+                        last_name=form.cleaned_data['last_name'],
+                        email=form.cleaned_data['email'],
+                        phone=form.cleaned_data['phone']
+                    )
+                    
+                return JsonResponse({'success': True, 'quote_id': quote.id})
+            else:
+                # Return field-specific errors
+                return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+        except (CruiseSession.DoesNotExist, CruiseCabinPrice.DoesNotExist):
+            return JsonResponse({'success': False, 'errors': 'Invalid session or cabin type'}, status=400)
+        except ValidationError as ve:
+            return JsonResponse({'success': False, 'errors': ve.message_dict}, status=400)
+        except Exception as e:
+            logger.error(f"Error creating quote: {e}")
+            return JsonResponse({'success': False, 'errors': 'An unexpected error occurred.'}, status=500)
 
-    try:
-        session = CruiseSession.objects.get(id=session_id, cruise_id=cruise_id)
-        category_price = CruiseCabinPrice.objects.get(cruise_id=cruise_id, category_id=category_id)
 
-        quote = Quote.objects.create(
-            user=request.user if not isinstance(request.user, AnonymousUser) else None,
-            cruise_session=session,
-            cruise_category_price=category_price,
-            number_of_passengers=1,  # You might want to add this as a user input
-            total_price=category_price.price,  # This should be calculated based on number of passengers
-            status='pending'
-        )
-
-        # Create QuotePassenger
-        QuotePassenger.objects.create(
-            quote=quote,
-            first_name=passenger_data.get('first_name', ''),
-            last_name=passenger_data.get('last_name', ''),
-            email=passenger_data.get('email', ''),
-            phone=passenger_data.get('phone', '')
-        )
-
-        return JsonResponse({'success': True, 'quote_id': quote.id})
-    except (CruiseSession.DoesNotExist, CruiseCabinPrice.DoesNotExist):
-        return JsonResponse({'success': False, 'errors': 'Invalid session or category'})
-    except Exception as e:
-        return JsonResponse({'success': False, 'errors': str(e)})
 
 def quote_cruise(request, cruise_id):
     cruise = get_object_or_404(Cruise, pk=cruise_id)
     selected_session_id = request.GET.get('session')
     selected_cabin_price_id = request.GET.get('cabin_price')
 
+    logger.debug(f"Received quote_cruise request with session_id={selected_session_id} and cabin_price_id={selected_cabin_price_id}")
+
     selected_session = None
     selected_cabin_price = None
 
     if selected_session_id:
-        selected_session = get_object_or_404(CruiseSession, pk=selected_session_id, cruise=cruise)
-    
+        try:
+            selected_session = get_object_or_404(CruiseSession, pk=selected_session_id, cruise=cruise)
+            logger.debug(f"Selected CruiseSession: {selected_session}")
+        except Http404:
+            logger.error(f"CruiseSession with id={selected_session_id} does not exist for Cruise id={cruise_id}")
+
     if selected_cabin_price_id and selected_session:
-        selected_cabin_price = get_object_or_404(CruiseCabinPrice, pk=selected_cabin_price_id, cruise=cruise, session=selected_session)
+        try:
+            selected_cabin_price = get_object_or_404(CruiseCabinPrice, pk=selected_cabin_price_id, cruise=cruise, session=selected_session)
+            logger.debug(f"Selected CruiseCabinPrice: {selected_cabin_price}")
+        except Http404:
+            logger.error(f"CruiseCabinPrice with id={selected_cabin_price_id} does not exist for Cruise id={cruise_id} and Session id={selected_session_id}")
 
     initial_data = {
         'cruise_session': selected_session,
@@ -86,26 +138,29 @@ def quote_cruise(request, cruise_id):
     if request.method == 'POST':
         form = QuoteForm(request.POST, cruise=cruise, session=selected_session, initial=initial_data)
         if form.is_valid():
-            quote = form.save(commit=False)
-            quote.cruise_session = form.cleaned_data['cruise_session']
-            quote.cruise_cabin_price = form.cleaned_data['cruise_cabin_price']
-            quote.total_price = quote.cruise_cabin_price.price * quote.number_of_passengers
-            
-            # Set the expiration date to 30 days from now (or any other duration you prefer)
-            quote.expiration_date = timezone.now() + timedelta(days=30)
-            
-            quote.save()
-            
-            # Create QuotePassenger
-            QuotePassenger.objects.create(
-                quote=quote,
-                first_name=form.cleaned_data['first_name'],
-                last_name=form.cleaned_data['last_name'],
-                email=form.cleaned_data['email'],
-                phone=form.cleaned_data['phone']
-            )
-
-            return redirect('quote:quote_confirmation')
+            try:
+                with transaction.atomic():
+                    quote = form.save(commit=False)
+                    quote.cruise_session = form.cleaned_data['cruise_session']
+                    quote.cruise_cabin_price = form.cleaned_data['cruise_cabin_price']
+                    quote.total_price = quote.cruise_cabin_price.price * quote.number_of_passengers
+                    quote.expiration_date = timezone.now() + timedelta(days=30)
+                    quote.save()
+                    
+                    # Create QuotePassenger
+                    QuotePassenger.objects.create(
+                        quote=quote,
+                        first_name=form.cleaned_data['first_name'],
+                        last_name=form.cleaned_data['last_name'],
+                        email=form.cleaned_data['email'],
+                        phone=form.cleaned_data['phone']
+                    )
+                    
+                messages.success(request, 'Your quote has been successfully created.')
+                return redirect('quote:quote_confirmation')
+            except Exception as e:
+                logger.error(f"Error creating quote: {e}")
+                messages.error(request, 'There was an error creating your quote. Please try again.')
     else:
         form = QuoteForm(cruise=cruise, session=selected_session, initial=initial_data)
 
@@ -116,6 +171,8 @@ def quote_cruise(request, cruise_id):
         'selected_cabin_price': selected_cabin_price,
         'initial_total_price': selected_cabin_price.price if selected_cabin_price else 0,
     }
+
+    logger.debug(f"Rendering quote_cruise.html with context: {context}")
 
     return render(request, 'quote/quote_cruise.html', context)
 

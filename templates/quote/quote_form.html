@@ -1,0 +1,46 @@
+<!-- quotes/templates/quotes/quote_form.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <h1>Request a Quote for {{ cruise.name }}</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+
+        <div id="passenger-forms">
+            {{ passenger_formset.management_form }}
+            {% for p_form in passenger_formset %}
+                <div class="passenger-form" id="passenger-form-{{ forloop.counter }}" style="display: none;">
+                    <h3>Passenger {{ forloop.counter }}</h3>
+                    {{ p_form.as_p }}
+                </div>
+            {% endfor %}
+        </div>
+
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const numberOfPassengersField = document.getElementById('{{ form.number_of_passengers.id_for_label }}');
+        const passengerForms = document.querySelectorAll('.passenger-form');
+
+        function updatePassengerForms() {
+            const numberOfPassengers = parseInt(numberOfPassengersField.value) || 1;
+            passengerForms.forEach((form, index) => {
+                if (index < numberOfPassengers) {
+                    form.style.display = 'block';
+                } else {
+                    form.style.display = 'none';
+                }
+            });
+        }
+
+        numberOfPassengersField.addEventListener('input', updatePassengerForms);
+        updatePassengerForms();
+    });
+</script>
+{% endblock %}

@@ -170,6 +170,7 @@ class CruiseSessionAdmin(admin.ModelAdmin):
         return ", ".join([f"{price.cabin_type.name}: €{price.price}" for price in prices])
     get_cabin_prices.short_description = "Cabin Prices"
 
+
 @admin.register(CabinType)
 class CabinTypeAdmin(admin.ModelAdmin):
     list_display = ('name', 'capacity', 'deck', 'get_cruise_count', 'get_equipment_summary')

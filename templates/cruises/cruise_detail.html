@@ -206,61 +206,61 @@
 {% endblock %}
 
 {% block extra_js %}
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.js"></script>
-<script src="{% static 'js/cruise_detail.js' %}"></script>
 <script>
     var cruiseId = {{ cruise.id }};
     var bookCruiseUrl = "{% url 'quote:quote_cruise' cruise.id %}";
 
-document.addEventListener('DOMContentLoaded', function() {
-    let selectedSessionId = null;
-    let selectedCabinPriceId = null;
+    document.addEventListener('DOMContentLoaded', function() {
+        let selectedSessionId = null;
+        let selectedCabinPriceId = null;
 
-    // Date selection
-    const dateList = document.querySelector('.date-list');
-    dateList.addEventListener('click', function(e) {
-        if (e.target.classList.contains('select-date-btn')) {
-            const listItem = e.target.closest('li');
-            selectedSessionId = listItem.dataset.sessionId;
-            document.querySelectorAll('.date-list li').forEach(li => li.classList.remove('selected'));
-            listItem.classList.add('selected');
-            
-            // Filter cabin types based on selected session
-            document.querySelectorAll('.cabin-card').forEach(card => {
-                if (card.dataset.sessionId === selectedSessionId) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
+        // Date selection
+        const dateList = document.querySelector('.date-list');
+        dateList.addEventListener('click', function(e) {
+            if (e.target.classList.contains('select-date-btn')) {
+                const listItem = e.target.closest('li');
+                selectedSessionId = listItem.dataset.sessionId;
+                document.querySelectorAll('.date-list li').forEach(li => li.classList.remove('selected'));
+                listItem.classList.add('selected');
+                
+                // Filter cabin types based on selected session
+                document.querySelectorAll('.cabin-card').forEach(card => {
+                    if (card.dataset.sessionId === selectedSessionId) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
 
-            document.getElementById('step1').classList.remove('active');
-            document.getElementById('step2').classList.add('active');
-            document.getElementById('step1-content').classList.remove('active');
-            document.getElementById('step2-content').classList.add('active');
-        }
-    });
+                document.getElementById('step1').classList.remove('active');
+                document.getElementById('step2').classList.add('active');
+                document.getElementById('step1-content').classList.remove('active');
+                document.getElementById('step2-content').classList.add('active');
+            }
+        });
 
-    // Cabin selection
-    const cabinSelection = document.querySelector('.cabin-selection');
-    cabinSelection.addEventListener('click', function(e) {
-        if (e.target.classList.contains('select-cabin-btn')) {
-            const cabinCard = e.target.closest('.cabin-card');
-            selectedCabinPriceId = cabinCard.dataset.cabinPriceId;
-            document.querySelectorAll('.cabin-card').forEach(card => card.classList.remove('selected'));
-            cabinCard.classList.add('selected');
-            
-            // Update button text and style
-            document.querySelectorAll('.select-cabin-btn').forEach(btn => {
-                btn.textContent = 'Select';
-                btn.classList.remove('btn-success');
-                btn.classList.add('btn-primary');
-            });
-            e.target.textContent = 'Selected';
-            e.target.classList.remove('btn-primary');
-            e.target.classList.add('btn-success');
-        }
-    });
+        // Cabin selection
+        const cabinSelection = document.querySelector('.cabin-selection');
+        cabinSelection.addEventListener('click', function(e) {
+            if (e.target.classList.contains('select-cabin-btn')) {
+                const cabinCard = e.target.closest('.cabin-card');
+                selectedCabinPriceId = cabinCard.dataset.cabinPriceId;
+                document.querySelectorAll('.cabin-card').forEach(card => card.classList.remove('selected'));
+                cabinCard.classList.add('selected');
+                
+                // Update button text and style
+                document.querySelectorAll('.select-cabin-btn').forEach(btn => {
+                    btn.textContent = 'Select';
+                    btn.classList.remove('btn-success');
+                    btn.classList.add('btn-primary');
+                });
+                e.target.textContent = 'Selected';
+                e.target.classList.remove('btn-primary');
+                e.target.classList.add('btn-success');
+            }
+        });
 
         // Navigation buttons
         document.getElementById('backToDate').addEventListener('click', function() {
@@ -270,16 +270,13 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('step1-content').classList.add('active');
         });
 
-
-
-
         document.getElementById('proceedToBooking').addEventListener('click', function() {
-        if (selectedSessionId && selectedCabinPriceId) {
-            window.location.href = `${bookCruiseUrl}?session=${selectedSessionId}&cabin_price=${selectedCabinPriceId}`;
-        } else {
-            alert('Please select both a date and a cabin type before proceeding.');
-        }
-    });
+            if (selectedSessionId && selectedCabinPriceId) {
+                window.location.href = `${bookCruiseUrl}?session=${selectedSessionId}&cabin_price=${selectedCabinPriceId}`;
+            } else {
+                alert('Please select both a date and a cabin type before proceeding.');
+            }
+        });
 
         // Initialize slick carousel for cabin images
         $('.image-slider').slick({

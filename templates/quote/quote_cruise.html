@@ -1,8 +1,8 @@
 {% extends 'base.html' %}
-{% load cruise_extras %}
 {% load static %}
+{% load i18n %}
 
-{% block title %}Request Quote for {{ cruise.name }} - Travel in Style{% endblock %}
+{% block title %}{% trans "Request Quote for" %} {{ cruise.name }} - Travel in Style{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/book_cruise.css' %}">
@@ -13,31 +13,63 @@
 <div class="content-wrapper">
     <div class="booking-section">
         <div class="container">
-            <h2 class="text-center mb-4">Request a Quote for {{ cruise.name }}</h2>
+            <h2 class="text-center mb-4">{% trans "Request a Quote for" %} {{ cruise.name }}</h2>
             <div class="row">
                 <div class="col-lg-8">
                     <div class="booking-form-card">
-                        <h3>Passenger Information</h3>
+                        <h3>{% trans "Passenger Information" %}</h3>
                         <form method="post" id="quoteForm">
                             {% csrf_token %}
-                            {% for field in form %}
-                                <div class="mb-3">
-                                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-                                    {{ field }}
-                                    {% if field.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {{ field.errors|join:", " }}
-                                        </div>
+                            <div class="mb-3">
+                                <label for="{{ form.cruise_session.id_for_label }}" class="form-label">{{ form.cruise_session.label }}</label>
+                                {{ form.cruise_session }}
+                                <div class="invalid-feedback d-block" id="cruise_session_errors"></div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="{{ form.cruise_cabin_price.id_for_label }}" class="form-label">{{ form.cruise_cabin_price.label }}</label>
+                                <select name="cruise_cabin_price" id="{{ form.cruise_cabin_price.id_for_label }}" class="form-control">
+                                    <option value="">{% trans "Select a cabin type" %}</option>
+                                    {% if selected_cabin_price %}
+                                        <option value="{{ selected_cabin_price.id }}" selected>{{ selected_cabin_price.cabin_type.name }}: €{{ selected_cabin_price.price }}</option>
                                     {% endif %}
-                                </div>
-                            {% endfor %}
-                            <button type="submit" class="btn btn-primary btn-lg w-100">Request Quote</button>
+                                </select>
+                                <div class="invalid-feedback d-block" id="cruise_cabin_price_errors"></div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="{{ form.number_of_passengers.id_for_label }}" class="form-label">{{ form.number_of_passengers.label }}</label>
+                                {{ form.number_of_passengers }}
+                                <div class="invalid-feedback d-block" id="number_of_passengers_errors"></div>
+                            </div>
+                            <hr>
+                            <h4>{% trans "Passenger Details" %}</h4>
+                            <div class="mb-3">
+                                <label for="{{ form.first_name.id_for_label }}" class="form-label">{{ form.first_name.label }}</label>
+                                {{ form.first_name }}
+                                <div class="invalid-feedback d-block" id="first_name_errors"></div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="{{ form.last_name.id_for_label }}" class="form-label">{{ form.last_name.label }}</label>
+                                {{ form.last_name }}
+                                <div class="invalid-feedback d-block" id="last_name_errors"></div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }}</label>
+                                {{ form.email }}
+                                <div class="invalid-feedback d-block" id="email_errors"></div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="{{ form.phone.id_for_label }}" class="form-label">{{ form.phone.label }}</label>
+                                {{ form.phone }}
+                                <div class="invalid-feedback d-block" id="phone_errors"></div>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-lg w-100">{% trans "Request Quote" %}</button>
                         </form>
+                        <div id="form-messages" class="mt-3"></div>
                     </div>
                 </div>
                 <div class="col-lg-4">
                     <div class="booking-details-card">
-                        <h3>Quote Summary</h3>
+                        <h3>{% trans "Quote Summary" %}</h3>
                         <div class="detail-item">
                             <i class="fas fa-ship"></i>
                             <span>{{ cruise.name }}</span>
@@ -48,7 +80,7 @@
                                 {% if selected_session %}
                                     {{ selected_session.start_date|date:"M d, Y" }} - {{ selected_session.end_date|date:"M d, Y" }}
                                 {% else %}
-                                    Select a session
+                                    {% trans "Select a session" %}
                                 {% endif %}
                             </span>
                         </div>
@@ -58,7 +90,7 @@
                                 {% if selected_cabin_price %}
                                     {{ selected_cabin_price.cabin_type.name }}
                                 {% else %}
-                                    Select a cabin type
+                                    {% trans "Select a cabin type" %}
                                 {% endif %}
                             </span>
                         </div>
@@ -66,14 +98,14 @@
                             <i class="fas fa-euro-sign"></i>
                             <span id="pricePerPerson">
                                 {% if selected_cabin_price %}
-                                    €{{ selected_cabin_price.price|floatformat:2 }} per person
+                                    €{{ selected_cabin_price.price|floatformat:2 }} {% trans "per person" %}
                                 {% else %}
-                                    Select a cabin type
+                                    {% trans "Select a cabin type" %}
                                 {% endif %}
                             </span>
                         </div>
                         <div class="total-price mt-4">
-                            <strong>Estimated Total:</strong>
+                            <strong>{% trans "Estimated Total:" %}</strong>
                             <span id="totalPrice">
                                 {% if initial_total_price %}
                                     €{{ initial_total_price|floatformat:2 }}
@@ -83,6 +115,15 @@
                             </span>
                         </div>
                     </div>
+                </div>
+            </div>
+            <!-- Debug Information -->
+            <div class="row mt-5">
+                <div class="col-md-12">
+                    <h4>{% trans "Debug Information" %}</h4>
+                    <p><strong>Selected Session:</strong> {{ selected_session }}</p>
+                    <p><strong>Selected Cabin Price:</strong> {{ selected_cabin_price }}</p>
+                    <p><strong>Initial Total Price:</strong> €{{ initial_total_price }}</p>
                 </div>
             </div>
         </div>
@@ -117,21 +158,21 @@
             const selectedCabinPrice = cabinPriceSelect.options[cabinPriceSelect.selectedIndex];
             const passengers = parseInt(passengersInput.value) || 1;
 
-            if (selectedSession) {
+            if (selectedSession && selectedSession.value) {
                 sessionDatesElement.textContent = selectedSession.text;
             } else {
-                sessionDatesElement.textContent = 'Select a session';
+                sessionDatesElement.textContent = '{% trans "Select a session" %}';
             }
 
             if (selectedCabinPrice && selectedCabinPrice.value) {
                 const [cabinType, price] = selectedCabinPrice.text.split(':');
                 cabinTypeElement.textContent = cabinType.trim();
                 const parsedPrice = parseFloat(price.replace('€', '').trim());
-                pricePerPersonElement.textContent = `€${parsedPrice.toFixed(2)} per person`;
+                pricePerPersonElement.textContent = `€${parsedPrice.toFixed(2)} {% trans 'per person' %}`;
                 totalPriceElement.textContent = `€${(parsedPrice * passengers).toFixed(2)}`;
             } else {
-                cabinTypeElement.textContent = 'Select a cabin type';
-                pricePerPersonElement.textContent = 'Select a cabin type';
+                cabinTypeElement.textContent = '{% trans "Select a cabin type" %}';
+                pricePerPersonElement.textContent = '{% trans "Select a cabin type" %}';
                 totalPriceElement.textContent = '€0';
             }
         }

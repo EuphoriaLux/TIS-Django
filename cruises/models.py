@@ -1,3 +1,4 @@
+#cruises/models.py
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import EmailValidator, MinValueValidator
@@ -247,7 +248,7 @@ class CruiseCabinPrice(BaseModel):
     cruise = models.ForeignKey(Cruise, on_delete=models.CASCADE)
     cabin_type = models.ForeignKey(CabinType, on_delete=models.CASCADE)
     price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
-    session = models.ForeignKey(CruiseSession, on_delete=models.CASCADE, null=True, blank=True)
+    session = models.ForeignKey(CruiseSession, on_delete=models.CASCADE, null=True, blank=True, related_name='cabin_prices')
 
     class Meta:
         unique_together = ['cruise', 'cabin_type', 'session']

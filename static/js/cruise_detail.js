@@ -39,6 +39,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.getElementById('proceedToBooking').addEventListener('click', () => {
         if (selectedSession && selectedCabin) {
+            
             const bookingUrl = `${bookCruiseUrl}?session=${selectedSession}&cabin=${selectedCabin}`;
             window.location.href = bookingUrl;
         } else {

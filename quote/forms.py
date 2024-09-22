@@ -1,13 +1,30 @@
-# quotes/forms.py
+# quote/forms.py
+
 from django import forms
 from cruises.models import CruiseSession, CruiseCabinPrice
 from .models import Quote, QuotePassenger
+from django.utils import timezone
 
 class QuoteForm(forms.ModelForm):
-    first_name = forms.CharField(max_length=100)
-    last_name = forms.CharField(max_length=100)
-    email = forms.EmailField()
-    phone = forms.CharField(max_length=20)
+    first_name = forms.CharField(
+        max_length=100, 
+        required=True, 
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+    last_name = forms.CharField(
+        max_length=100, 
+        required=True, 
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+    email = forms.EmailField(
+        required=True, 
+        widget=forms.EmailInput(attrs={'class': 'form-control'})
+    )
+    phone = forms.CharField(
+        max_length=20, 
+        required=True, 
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
 
     cruise_session = forms.ModelChoiceField(
         queryset=CruiseSession.objects.none(),
@@ -21,6 +38,12 @@ class QuoteForm(forms.ModelForm):
         label="Cabin Type",
     )
 
+    number_of_passengers = forms.IntegerField(
+        min_value=1,
+        widget=forms.NumberInput(attrs={'class': 'form-control'}),
+        label="Number of Passengers"
+    )
+
     class Meta:
         model = Quote
         fields = ['cruise_session', 'cruise_cabin_price', 'number_of_passengers']
@@ -31,7 +54,10 @@ class QuoteForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         if self.cruise:
-            self.fields['cruise_session'].queryset = CruiseSession.objects.filter(cruise=self.cruise)
+            self.fields['cruise_session'].queryset = CruiseSession.objects.filter(
+                cruise=self.cruise, 
+                start_date__gte=timezone.now()
+            )
             if self.session:
                 self.fields['cruise_session'].initial = self.session
 
@@ -42,7 +68,7 @@ class QuoteForm(forms.ModelForm):
             )
         
         self.fields['cruise_cabin_price'].label_from_instance = self.label_from_instance
-        self.fields['cruise_session'].widget.attrs.update({'onchange': 'this.form.submit();'})
+        # Removed onchange attribute to prevent form submission on change
         self.fields['cruise_cabin_price'].widget.attrs.update({'class': 'form-control'})
         self.fields['number_of_passengers'].widget.attrs.update({'class': 'form-control'})
 
@@ -55,6 +81,13 @@ class QuoteForm(forms.ModelForm):
         number_of_passengers = cleaned_data.get('number_of_passengers')
 
         if cruise_cabin_price and number_of_passengers:
+            # Assuming cabin_type has a capacity field
+            if number_of_passengers > cruise_cabin_price.cabin_type.capacity:
+                self.add_error(
+                    'number_of_passengers', 
+                    f"Maximum {cruise_cabin_price.cabin_type.capacity} passengers allowed for {cruise_cabin_price.cabin_type.name}."
+                )
+
             cleaned_data['total_price'] = cruise_cabin_price.price * number_of_passengers
 
         return cleaned_data
