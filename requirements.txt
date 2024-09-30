@@ -2,4 +2,8 @@ Django==5.0.6
 psycopg2-binary==2.9.9
 python-dotenv==1.0.1
 whitenoise==6.6.0
-django-redis==5.4.0
+crispy-bootstrap4==2024.1
+django-crispy-forms==2.3
+django-formtools==2.5.1
+xhtml2pdf==0.2.16
+PyPDF2==3.0.1

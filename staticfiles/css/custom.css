@@ -1,0 +1,217 @@
+/* static/css/custom.css */
+
+.cruise-item {
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    border: none;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.cruise-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+.cruise-item .card-img-top {
+    height: 200px;
+    object-fit: cover;
+    width: 100%;
+}
+
+.cruise-item .card-body {
+    padding: 1.25rem;
+}
+
+.cruise-item .rating-price {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.cruise-item .rating {
+    color: #ffc107;
+}
+
+.cruise-item .price {
+    font-weight: bold;
+    color: #28a745;
+}
+
+.cruise-item .card-title {
+    font-size: 1.25rem;
+    margin-bottom: 0.75rem;
+}
+
+.cruise-item .card-text {
+    color: #6c757d;
+    margin-bottom: 1rem;
+}
+
+.cruise-item .cruise-info {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    font-size: 0.9em;
+    color: #6c757d;
+}
+
+.cruise-item .btn-primary {
+    width: 100%;
+    margin-top: 1rem;
+}
+
+.cruise-detail img {
+    max-height: 400px;
+    object-fit: cover;
+    width: 100%;
+}
+
+.pack-col {
+    background-color: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    margin-bottom: 30px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.pack-col:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.pack-col img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    object-position: center;
+}
+
+.pack-col .revire {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    background-color: #fff;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.pack-col .rat {
+    padding: 0;
+    margin: 0;
+    list-style-type: none;
+}
+
+.pack-col .rat li {
+    display: inline-block;
+    color: #f1b517;
+}
+
+.pack-col .pric {
+    font-weight: 700;
+    color: #14863d;
+}
+
+.pack-col .detail {
+    padding: 15px;
+}
+
+.pack-col .detail h4 {
+    margin-bottom: 10px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.pack-col .detail p {
+    color: #6A6A6A;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.pack-col .options {
+    padding: 15px;
+    background-color: #f8f9fa;
+    flex-grow: 1;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.pack-col .option-item {
+    display: flex;
+    align-items: center;
+    font-size: 0.85rem;
+    color: #6A6A6A;
+}
+
+.pack-col .option-item i {
+    margin-right: 8px;
+    color: #14863d;
+    width: 20px;
+    text-align: center;
+}
+
+.pack-col .action-buttons {
+    padding: 15px;
+}
+
+.pack-col .action-buttons .btn-primary {
+    display: block;
+    width: 100%;
+    background-color: #14863d;
+    border-color: #14863d;
+    font-weight: 600;
+}
+
+.pack-col .action-buttons .btn-primary:hover {
+    background-color: #0f6d31;
+    border-color: #0f6d31;
+}
+
+@media (max-width: 768px) {
+    .pack-col .options {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+.content-wrapper {
+    padding-top: 120px; /* Adjust this value based on your header height */
+}
+
+/* You might also want to add some responsive adjustments */
+@media (max-width: 768px) {
+    .content-wrapper {
+        padding-top: 100px; /* Adjust for smaller screens if necessary */
+    }
+}
+
+/* Ensure the session-title has some margin */
+.session-title {
+    margin-bottom: 30px;
+}
+
+
+
+/* If the header is causing issues on smaller screens, you might want to adjust its behavior */
+@media (max-width: 768px) {
+    header {
+        position: absolute;
+    }
+}
+
+.nav-item.active > a {
+    color: #14863d !important; /* Use your preferred highlight color */
+    font-weight: bold;
+    border-bottom: 2px solid #14863d; /* Optional: adds an underline effect */
+}
+
+/* If you want a different style for hover */
+.nav-item:hover > a {
+    color: #0f6d31 !important; /* A slightly darker shade for hover */
+}

@@ -1,0 +1,37 @@
+.booking-section {
+    padding: 40px 0;
+    background-color: #f8f9fa;
+}
+
+.booking-form-card,
+.booking-details-card {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    height: 100%;
+}
+
+.booking-form-card h3,
+.booking-details-card h3 {
+    color: #14863d;
+    margin-bottom: 20px;
+}
+
+.detail-item {
+    margin-bottom: 10px;
+}
+
+.detail-item strong {
+    color: #14863d;
+}
+
+.btn-primary {
+    background-color: #14863d;
+    border-color: #14863d;
+}
+
+.btn-primary:hover {
+    background-color: #0f6d31;
+    border-color: #0f6d31;
+}
