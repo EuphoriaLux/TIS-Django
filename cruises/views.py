@@ -18,7 +18,7 @@ def about(request):
             {
                 'name': 'Rony Broun',
                 'position': 'CEO & Chairman',
-                'image': '/images/rony_broun_01s.jpg'
+                'image': 'assets/images/rony_broun_01s.jpg'
             },
             {
                 'name': 'Rafaela Marques',
