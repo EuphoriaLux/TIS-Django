@@ -47,15 +47,17 @@ class Command(BaseCommand):
             description='Experience the beauty of Malta with our specialized cruise offerings.',
             website='http://inmalta.eu/001_fr.htm',
             featured=True,
-            logo='brand_logos/in_malta.png'
+            logo_path='brand_logos/in_malta.png'
         )
-        
+
+
+                
         self.create_or_update_brand(
             name='Fleuves du Monde',
             description='Your premier selection of curated cruise experiences around the world.',
             website='http://www.fleuvesdumonde.eu/index_fr.htm',
             featured=True,
-            logo='brand_logos/logo_fleuvesdumonde.jpg'
+            logo_path='brand_logos/logo_fleuvesdumonde.jpg'
         )
 
         self.create_or_update_brand(
@@ -63,7 +65,7 @@ class Command(BaseCommand):
             description='Your premier selection of curated cruise experiences around the world.',
             website='https://cruiseselection.be/index_LUX.htm',
             featured=True,
-            logo='brand_logos/cruise_selection.png'
+            logo_path='brand_logos/cruise_selection.png'
         )
 
         self.create_or_update_brand(
@@ -71,7 +73,7 @@ class Command(BaseCommand):
             description='Discover the beauty of river cruising with Fluss.lu.',
             website='https://www.fluss.lu/',
             featured=True,
-            logo='brand_logos/fluss_lu.png'
+            logo_path='brand_logos/fluss_lu.png'
         )
 
         self.create_or_update_brand(
@@ -79,7 +81,7 @@ class Command(BaseCommand):
             description='Discover the beauty of Luxembourg.',
             website='http://inluxembourg.eu/index_nl.htm',
             featured=True,
-            logo='brand_logos/inluxembourg_logo.png'
+            logo_path='brand_logos/inluxembourg_logo.png'
         )
 
         # Create or update equipment
@@ -279,20 +281,29 @@ class Command(BaseCommand):
         else:
             self.stdout.write(f'Updated cruise type: {name}')
 
-    def create_or_update_brand(self, name, description, website, featured, logo):
+    def create_or_update_brand(self, name, description, website, featured, logo_path):
         brand, created = Brand.objects.update_or_create(
             name=name,
             defaults={
                 'description': description,
                 'website': website,
                 'featured': featured,
-                'logo': logo
             }
         )
-        if created:
-            self.stdout.write(f'Created brand: {name}')
+        
+        if logo_path:
+            logo_full_path = os.path.join(settings.MEDIA_ROOT, logo_path)
+            if os.path.exists(logo_full_path):
+                with open(logo_full_path, 'rb') as f:
+                    brand.logo.save(os.path.basename(logo_path), File(f), save=True)
+                if created:
+                    self.stdout.write(f'Created brand: {name} with logo.')
+                else:
+                    self.stdout.write(f'Updated brand: {name} with logo.')
+            else:
+                self.stdout.write(self.style.WARNING(f'Logo file not found: {logo_full_path}'))
         else:
-            self.stdout.write(f'Updated brand: {name}')
+            self.stdout.write(f'Updated brand: {name} without logo.')
 
     def create_or_update_equipment(self, name, name_de, name_fr, description, description_de, description_fr):
         equipment, created = Equipment.objects.update_or_create(

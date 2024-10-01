@@ -1,3 +1,6 @@
+# cruises/admin.py
+
+import nested_admin
 from django import forms
 from django.contrib import admin
 from django.db import transaction
@@ -17,35 +20,36 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# Inline Classes
-class CruiseCabinPriceInline(admin.TabularInline):
+# Nested Inline Classes
+class CruiseCabinPriceInline(nested_admin.NestedTabularInline):
     model = CruiseCabinPrice
+    fk_name = 'session'  # Specify the ForeignKey to use
     extra = 1
     fields = ('cabin_type', 'price')
     autocomplete_fields = ['cabin_type']
+    exclude = ('cruise',)  # Exclude 'cruise' since it will be set automatically
 
-class CruiseSessionInline(admin.StackedInline):
+class CruiseSessionInline(nested_admin.NestedStackedInline):
     model = CruiseSession
     extra = 1
     show_change_link = True
     inlines = [CruiseCabinPriceInline]
 
-class CruiseItineraryInline(admin.TabularInline):
+class CruiseItineraryInline(nested_admin.NestedTabularInline):
     model = CruiseItinerary
     extra = 1
     fields = ('day', 'port', 'arrival_time', 'departure_time', 'description')
 
-class CabinTypeEquipmentInline(admin.TabularInline):
+class CabinTypeEquipmentInline(nested_admin.NestedTabularInline):
     model = CabinTypeEquipment
     extra = 1
     verbose_name = "Equipment"
     verbose_name_plural = "Equipment"
     autocomplete_fields = ['equipment']
 
-
 # Admin Classes
 @admin.register(Cruise)
-class CruiseAdmin(admin.ModelAdmin):
+class CruiseAdmin(nested_admin.NestedModelAdmin):
     list_display = (
         'name', 'cruise_type', 'company', 'get_price_range',
         'get_next_session', 'has_flyer', 'generate_flyer_button'
@@ -159,7 +163,7 @@ class CruiseAdmin(admin.ModelAdmin):
     duplicate_cruise.short_description = "Duplicate selected cruises"
 
 @admin.register(CruiseSession)
-class CruiseSessionAdmin(admin.ModelAdmin):
+class CruiseSessionAdmin(nested_admin.NestedModelAdmin):
     list_display = ('cruise', 'start_date', 'end_date', 'capacity', 'get_cabin_prices')
     list_filter = ('cruise', 'start_date')
     search_fields = ('cruise__name',)
@@ -170,9 +174,19 @@ class CruiseSessionAdmin(admin.ModelAdmin):
         return ", ".join([f"{price.cabin_type.name}: €{price.price}" for price in prices])
     get_cabin_prices.short_description = "Cabin Prices"
 
+    def save_formset(self, request, form, formset, change):
+        if formset.model == CruiseCabinPrice:
+            instances = formset.save(commit=False)
+            for instance in instances:
+                instance.cruise = form.instance.cruise  # Set cruise based on CruiseSession's cruise
+                instance.session = form.instance        # Ensure session is set
+                instance.save()
+            formset.save_m2m()
+        else:
+            formset.save()
 
 @admin.register(CabinType)
-class CabinTypeAdmin(admin.ModelAdmin):
+class CabinTypeAdmin(nested_admin.NestedModelAdmin):
     list_display = ('name', 'capacity', 'deck', 'get_cruise_count', 'get_equipment_summary')
     search_fields = ('name', 'description')
     inlines = [CabinTypeEquipmentInline]
@@ -185,9 +199,6 @@ class CabinTypeAdmin(admin.ModelAdmin):
         equipment_list = obj.cabintypeequipment_set.select_related('equipment').all()
         return ", ".join([f"{item.equipment.name} (x{item.quantity})" for item in equipment_list])
     get_equipment_summary.short_description = "Equipment"
-
-
-
 
 @admin.register(CruiseCabinPrice)
 class CruiseCabinPriceAdmin(admin.ModelAdmin):
