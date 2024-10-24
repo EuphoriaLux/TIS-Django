@@ -109,6 +109,14 @@ resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2021-08-01'
   name: 'default'
 }
 
+resource staticContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2021-08-01' = {
+  parent: blobService
+  name: 'static'
+  properties: {
+    publicAccess: 'Blob'
+  }
+}
+
 resource mediaContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2021-08-01' = {
   parent: blobService
   name: 'media'
@@ -116,6 +124,9 @@ resource mediaContainer 'Microsoft.Storage/storageAccounts/blobServices/containe
     publicAccess: 'Blob'
   }
 }
+
+var storageAccountKey = storageAccount.listKeys().keys[0].value
+
 
 // App Service Plan
 resource appServicePlan 'Microsoft.Web/serverfarms@2021-03-01' = {
@@ -176,20 +187,37 @@ resource webApp 'Microsoft.Web/sites@2022-03-01' = {
   }
 }
 
-var appSettingsProperties = {
-  SCM_DO_BUILD_DURING_DEPLOYMENT: 'true'
-  AZURE_POSTGRESQL_CONNECTIONSTRING: 'dbname=${pythonAppDatabase.name} host=${postgresServer.name}.postgres.database.azure.com port=5432 sslmode=require user=${postgresServer.properties.administratorLogin} password=${databasePassword}'
-  SECRET_KEY: secretKey
-  WEBSITE_HTTPLOGGING_RETENTION_DAYS: '1'
-  AZURE_STORAGE_ACCOUNT_NAME: storageAccount.name
-  AZURE_STORAGE_ACCOUNT_KEY: storageAccount.listKeys().keys[0].value
-  AZURE_STORAGE_CONTAINER: mediaContainer.name
-}
-
+// Consolidated App Settings
 resource webAppSettings 'Microsoft.Web/sites/config@2022-03-01' = {
   parent: webApp
   name: 'appsettings'
-  properties: appSettingsProperties
+  properties: {
+    // Build settings
+    SCM_DO_BUILD_DURING_DEPLOYMENT: 'true'
+    ENABLE_ORYX_BUILD: 'true'
+    
+    // Application settings
+    AZURE_POSTGRESQL_CONNECTIONSTRING: 'dbname=${pythonAppDatabase.name} host=${postgresServer.name}.postgres.database.azure.com port=5432 sslmode=require user=${postgresServer.properties.administratorLogin} password=${databasePassword}'
+    SECRET_KEY: secretKey
+    WEBSITE_HTTPLOGGING_RETENTION_DAYS: '1'
+    
+    // Storage settings
+    AZURE_STORAGE_ACCOUNT_NAME: storageAccount.name
+    AZURE_STORAGE_ACCOUNT_KEY: storageAccount.listKeys().keys[0].value
+    AZURE_STORAGE_CONTAINER: staticContainer.name
+    AZURE_MEDIA_CONTAINER: mediaContainer.name
+    
+    // Python settings
+    PYTHON_PATH: '/home/site/wwwroot'
+    DJANGO_SETTINGS_MODULE: 'azureproject.production'
+    
+    // Web settings
+    WEBSITES_PORT: '8000'
+    WEBSITES_CONTAINER_START_TIME_LIMIT: '1800'
+    
+    // Application Insights
+    APPLICATIONINSIGHTS_CONNECTION_STRING: applicationInsights.outputs.APPLICATIONINSIGHTS_CONNECTION_STRING
+  }
 }
 
 resource webAppLogs 'Microsoft.Web/sites/config@2022-03-01' = {
@@ -272,7 +300,16 @@ resource pythonAppDatabase 'Microsoft.DBforPostgreSQL/flexibleServers/databases@
 // Outputs
 output APPLICATIONINSIGHTS_CONNECTION_STRING string = applicationInsights.outputs.APPLICATIONINSIGHTS_CONNECTION_STRING
 output WEB_URI string = 'https://${webApp.properties.defaultHostName}'
-output WEB_APP_SETTINGS array = [ 'SCM_DO_BUILD_DURING_DEPLOYMENT', 'AZURE_POSTGRESQL_CONNECTIONSTRING', 'SECRET_KEY', 'WEBSITE_HTTPLOGGING_RETENTION_DAYS', 'AZURE_STORAGE_ACCOUNT_NAME', 'AZURE_STORAGE_ACCOUNT_KEY', 'AZURE_STORAGE_CONTAINER' ]
+output WEB_APP_SETTINGS array = [
+  'SCM_DO_BUILD_DURING_DEPLOYMENT'
+  'AZURE_POSTGRESQL_CONNECTIONSTRING'
+  'SECRET_KEY'
+  'WEBSITE_HTTPLOGGING_RETENTION_DAYS'
+  'AZURE_STORAGE_ACCOUNT_NAME'
+  'AZURE_STORAGE_ACCOUNT_KEY'
+  'AZURE_STORAGE_CONTAINER'
+  'AZURE_MEDIA_CONTAINER'
+]
 output WEB_APP_LOG_STREAM string = 'https://portal.azure.com/#@/resource${webApp.id}/logStream'
 output WEB_APP_SSH string = 'https://${webApp.name}.scm.azurewebsites.net/webssh/host'
 output WEB_APP_CONFIG string = 'https://portal.azure.com/#@/resource${webApp.id}/configuration'
