@@ -46,8 +46,18 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
 ]
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+DEFAULT_FILE_STORAGE = 'storages.backends.azure_storage.AzureStorage'
+AZURE_ACCOUNT_NAME = os.getenv('AZURE_STORAGE_ACCOUNT_NAME')
+AZURE_ACCOUNT_KEY = os.getenv('AZURE_STORAGE_ACCOUNT_KEY')
+AZURE_CONTAINER = os.getenv('AZURE_STORAGE_CONTAINER')
+AZURE_URL_EXPIRATION_SECS = None  # Set to None for permanent URLs
+AZURE_OVERWRITE_FILES = True
+AZURE_LOCATION = ''  # Leave empty for default
+AZURE_SSL = True
+
+# Media files configuration
+MEDIA_URL = f'https://{AZURE_ACCOUNT_NAME}.blob.core.windows.net/{AZURE_CONTAINER}/'
+MEDIA_ROOT = ''  # Not used with Azure Storage
 
 
 # Configure Postgres database based on connection string of the libpq Keyword/Value form

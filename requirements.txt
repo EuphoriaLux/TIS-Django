@@ -8,3 +8,5 @@ django-formtools==2.5.1
 xhtml2pdf==0.2.16
 PyPDF2==3.0.1
 django-nested-admin==4.1.1
+django-storages==1.14.0
+azure-storage-blob==12.18.2
