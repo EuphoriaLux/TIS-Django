@@ -166,6 +166,110 @@ resource web 'Microsoft.Web/sites@2022-03-01' = {
   sku: {
     name: 'Standard_LRS'
   }
+<<<<<<< HEAD
+=======
+  kind: 'StorageV2'
+  properties: {
+    minimumTlsVersion: 'TLS1_2'
+    allowBlobPublicAccess: true
+    supportsHttpsTrafficOnly: true
+  }
+}
+
+// Add CORS rules to the blob service
+resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2021-08-01' = {
+  parent: storageAccount
+  name: 'default'
+  properties: {
+    cors: {
+      corsRules: [
+        {
+          allowedOrigins: [
+            'https://${webApp.properties.defaultHostName}'
+            'http://localhost:3000'
+            'http://localhost:8000'
+          ]
+          allowedMethods: [
+            'GET'
+            'HEAD'
+            'OPTIONS'
+          ]
+          allowedHeaders: [
+            '*'
+          ]
+          exposedHeaders: [
+            '*'
+          ]
+          maxAgeInSeconds: 3600
+        }
+      ]
+    }
+  }
+}
+
+resource staticContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2021-08-01' = {
+  parent: blobService
+  name: 'static'
+  properties: {
+    publicAccess: 'Blob'
+  }
+}
+
+resource mediaContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2021-08-01' = {
+  parent: blobService
+  name: 'media'
+  properties: {
+    publicAccess: 'Blob'
+  }
+}
+
+var storageAccountKey = storageAccount.listKeys().keys[0].value
+
+
+// App Service Plan
+resource appServicePlan 'Microsoft.Web/serverfarms@2021-03-01' = {
+  name: '${prefix}-service-plan'
+  location: location
+  tags: tags
+  sku: {
+    name: 'B1'
+  }
+  properties: {
+    reserved: true
+  }
+}
+
+// Log Analytics
+resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2020-03-01-preview' = {
+  name: '${prefix}-workspace'
+  location: location
+  tags: tags
+  properties: {
+    retentionInDays: 30
+    sku: {
+      name: 'PerGB2018'
+    }
+  }
+}
+
+// Application Insights
+module applicationInsights 'appinsights.bicep' = {
+  name: 'applicationinsights'
+  params: {
+    prefix: prefix
+    location: location
+    tags: tags
+    workspaceId: logAnalyticsWorkspace.id
+  }
+}
+
+// Web App
+resource webApp 'Microsoft.Web/sites@2022-03-01' = {
+  name: '${prefix}-app-service'
+  location: location
+  tags: union(tags, { 'azd-service-name': 'web' })
+  kind: 'app,linux'
+>>>>>>> af20a79 (update working)
   properties: {
     serverFarmId: appServicePlan.id
     siteConfig: {
