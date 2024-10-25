@@ -34,30 +34,35 @@ MIDDLEWARE = [
 AZURE_ACCOUNT_NAME = os.getenv('AZURE_STORAGE_ACCOUNT_NAME')
 AZURE_ACCOUNT_KEY = os.getenv('AZURE_STORAGE_ACCOUNT_KEY')
 AZURE_CUSTOM_DOMAIN = f'{AZURE_ACCOUNT_NAME}.blob.core.windows.net'
-
-# Static files configuration
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "static"),
-]
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+AZURE_CONTAINER = os.getenv('AZURE_STORAGE_CONTAINER', 'static')
+AZURE_MEDIA_CONTAINER = os.getenv('AZURE_MEDIA_CONTAINER', 'media')
 
 # Storage configuration
-# Azure Blob Storage configuration
 if AZURE_ACCOUNT_NAME and AZURE_ACCOUNT_KEY:
     # Static files
-    STATIC_LOCATION = "static"
-    STATICFILES_STORAGE = 'tis_django.custom_storage.StaticStorage'
-    STATIC_URL = f"https://{AZURE_CUSTOM_DOMAIN}/{STATIC_LOCATION}/"
+    STATICFILES_STORAGE = 'azureproject.custom_storage.StaticStorage'
+    STATIC_URL = f"https://{AZURE_CUSTOM_DOMAIN}/{AZURE_CONTAINER}/"
 
     # Media files
-    MEDIA_LOCATION = "media"
-    DEFAULT_FILE_STORAGE = 'tis_django.custom_storage.MediaStorage'
-    MEDIA_URL = f"https://{AZURE_CUSTOM_DOMAIN}/{MEDIA_LOCATION}/"
+    DEFAULT_FILE_STORAGE = 'azureproject.custom_storage.MediaStorage'
+    MEDIA_URL = f"https://{AZURE_CUSTOM_DOMAIN}/{AZURE_MEDIA_CONTAINER}/"
 else:
-    # Local storage for development
+    # Local storage fallback
     STATIC_URL = '/static/'
     MEDIA_URL = '/media/'
     MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Required for Azure Storage
+AZURE_OVERWRITE_FILES = True
+AZURE_SSL = True
+DEFAULT_FILE_STORAGE = 'azureproject.custom_storage.MediaStorage'
+STATICFILES_STORAGE = 'azureproject.custom_storage.StaticStorage'
+
+# Azure Storage Specific settings
+AZURE_CONNECTION_STRING = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
+AZURE_BLOB_MAX_MEMORY_SIZE = 2 * 1024 * 1024  # 2MB
+AZURE_BLOB_MAX_PARALLEL = 1
+AZURE_BLOB_SOCKET_TIMEOUT = 3600
 
 # Database configuration
 conn_str = os.environ.get('AZURE_POSTGRESQL_CONNECTIONSTRING', '')

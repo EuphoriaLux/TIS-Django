@@ -104,9 +104,35 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2021-08-01' = {
   }
 }
 
+// Add CORS rules to the blob service
 resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2021-08-01' = {
   parent: storageAccount
   name: 'default'
+  properties: {
+    cors: {
+      corsRules: [
+        {
+          allowedOrigins: [
+            'https://${webApp.properties.defaultHostName}'
+            'http://localhost:3000'
+            'http://localhost:8000'
+          ]
+          allowedMethods: [
+            'GET'
+            'HEAD'
+            'OPTIONS'
+          ]
+          allowedHeaders: [
+            '*'
+          ]
+          exposedHeaders: [
+            '*'
+          ]
+          maxAgeInSeconds: 3600
+        }
+      ]
+    }
+  }
 }
 
 resource staticContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2021-08-01' = {
