@@ -3,20 +3,16 @@ from .settings import *  # noqa
 from .settings import BASE_DIR
 
 # Configure the domain name using the environment variable
-# that Azure automatically creates for us.
-# Fetch custom domains from environment variables, separated by commas
 CUSTOM_DOMAINS = os.environ.get('CUSTOM_DOMAINS', '').split(',')
-
-# Configure ALLOWED_HOSTS
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['.azurewebsites.net', 'localhost', '127.0.0.1', '169.254.130.4']
 if 'WEBSITE_HOSTNAME' in os.environ:
     ALLOWED_HOSTS.append(os.environ['WEBSITE_HOSTNAME'])
 ALLOWED_HOSTS += [domain.strip() for domain in CUSTOM_DOMAINS if domain.strip()]
 
-# Configure CSRF_TRUSTED_ORIGINS
-CSRF_TRUSTED_ORIGINS = []
+# Security settings
+CSRF_TRUSTED_ORIGINS = ['https://*.azurewebsites.net']
 if 'WEBSITE_HOSTNAME' in os.environ:
-    CSRF_TRUSTED_ORIGINS.append('https://' + os.environ['WEBSITE_HOSTNAME'])
+    CSRF_TRUSTED_ORIGINS.append(f'https://{os.environ["WEBSITE_HOSTNAME"]}')
 CSRF_TRUSTED_ORIGINS += [f'https://{domain.strip()}' for domain in CUSTOM_DOMAINS if domain.strip()]
 
 DEBUG = False
@@ -34,6 +30,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+
+
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
@@ -43,26 +41,9 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
 ]
 
-# Azure Blob Storage Configuration for Media Files
-AZURE_STORAGE_ACCOUNT_NAME = os.environ.get('AZURE_STORAGE_ACCOUNT_NAME')
-AZURE_STORAGE_CONNECTION_STRING = os.environ.get('AZURE_STORAGE_CONNECTION_STRING')
-MEDIA_CONTAINER_NAME = os.environ.get('MEDIA_CONTAINER_NAME')
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# django-storages settings
-INSTALLED_APPS += [
-    'storages',
-]
-
-DEFAULT_FILE_STORAGE = 'storages.backends.azure_storage.AzureStorage'
-
-AZURE_CUSTOM_DOMAIN = f'{AZURE_STORAGE_ACCOUNT_NAME}.blob.core.windows.net'
-AZURE_LOCATION = 'media'
-
-MEDIA_URL = f'https://{AZURE_CUSTOM_DOMAIN}/{MEDIA_CONTAINER_NAME}/'
-
-# Optional: Configure caching and other settings
-AZURE_ACCOUNT_KEY = os.environ.get('AZURE_STORAGE_ACCOUNT_KEY')  # If using account key
-# Alternatively, use SAS tokens or Managed Identities for authentication
 
 # Configure Postgres database based on connection string of the libpq Keyword/Value form
 # https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING
@@ -78,6 +59,7 @@ DATABASES = {
     }
 }
 
+# Cache settings
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
