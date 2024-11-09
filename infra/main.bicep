@@ -26,8 +26,8 @@ resource resourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   tags: tags
 }
 
-module resources 'resources.bicep' = {
-  name: 'resources'
+module resourcesModule 'resources.bicep' = {
+  name: 'resourcesModule'
   scope: resourceGroup
   params: {
     name: name
@@ -40,9 +40,16 @@ module resources 'resources.bicep' = {
 }
 
 output AZURE_LOCATION string = location
-output APPLICATIONINSIGHTS_CONNECTION_STRING string = resources.outputs.APPLICATIONINSIGHTS_CONNECTION_STRING
-output WEB_URI string = resources.outputs.WEB_URI
-output WEB_APP_SETTINGS array = resources.outputs.WEB_APP_SETTINGS
-output WEB_APP_LOG_STREAM string = resources.outputs.WEB_APP_LOG_STREAM
-output WEB_APP_SSH string = resources.outputs.WEB_APP_SSH
-output WEB_APP_CONFIG string = resources.outputs.WEB_APP_CONFIG
+output APPLICATIONINSIGHTS_CONNECTION_STRING string = resourcesModule.outputs.APPLICATIONINSIGHTS_CONNECTION_STRING
+output WEB_URI string = resourcesModule.outputs.WEB_URI
+
+// Removed outputs that were causing errors
+/*
+output WEB_APP_SETTINGS array = resourcesModule.outputs.WEB_APP_SETTINGS
+output WEB_APP_LOG_STREAM string = resourcesModule.outputs.WEB_APP_LOG_STREAM
+output WEB_APP_SSH string = resourcesModule.outputs.WEB_APP_SSH
+output WEB_APP_CONFIG object = resourcesModule.outputs.WEB_APP_CONFIG
+*/
+
+output STORAGE_ACCOUNT_NAME string = resourcesModule.outputs.STORAGE_ACCOUNT_NAME
+output MEDIA_CONTAINER_NAME string = resourcesModule.outputs.MEDIA_CONTAINER_NAME

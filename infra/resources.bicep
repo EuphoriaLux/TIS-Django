@@ -9,17 +9,20 @@ param secretKey string
 
 var prefix = '${name}-${resourceToken}'
 
-var pgServerName = '${prefix}-postgres-server'
+// Clean and Truncate Prefix for Storage Account Name
+var cleanedPrefix = replace(prefix, '-', '')
+var truncatedPrefix = substring(cleanedPrefix, 0, 17) // Ensures the total length <= 24
+var storageAccountName = toLower('${truncatedPrefix}storage') // Ensures <=24 characters and no hyphens
+
+// Define Variables
 var databaseSubnetName = 'database-subnet'
 var webappSubnetName = 'webapp-subnet'
+var pgServerName = '${prefix}-postgres-server'
 
-// Added for Azure Redis Cache
-//var cacheServerName = '${prefix}-redisCache'
-//var cacheSubnetName = 'cache-subnet'
-//var cachePrivateEndpointName = 'cache-privateEndpoint'
-//var cachePvtEndpointDnsGroupName = 'cacheDnsGroup'
+var mediaContainerName = 'media'
 
-resource virtualNetwork 'Microsoft.Network/virtualNetworks@2019-11-01' = {
+// Virtual Network
+resource virtualNetwork 'Microsoft.Network/virtualNetworks@2021-05-01' = {
   name: '${prefix}-vnet'
   location: location
   tags: tags
@@ -29,74 +32,56 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2019-11-01' = {
         '10.0.0.0/16'
       ]
     }
-    subnets: [
-      {
-        name: databaseSubnetName
-        properties: {
-          addressPrefix: '10.0.0.0/24'
-          delegations: [
-            {
-              name: '${prefix}-subnet-delegation'
-              properties: {
-                serviceName: 'Microsoft.DBforPostgreSQL/flexibleServers'
-              }
-            }
-          ]
-        }
-      }
-      {
-        name: webappSubnetName
-        properties: {
-          addressPrefix: '10.0.1.0/24'
-          delegations: [
-            {
-              name: '${prefix}-subnet-delegation-web'
-              properties: {
-                serviceName: 'Microsoft.Web/serverFarms'
-              }
-            }
-          ]
-        }
-      }
- //     {
-  //      name: cacheSubnetName
-   //     properties:{
-  //        addressPrefix: '10.0.2.0/24'
-   //     }
-  //    }
-    ]
   }
-  resource databaseSubnet 'subnets' existing = {
-    name: databaseSubnetName
-  }
-  resource webappSubnet 'subnets' existing = {
-    name: webappSubnetName
-  }
-  // Added for Azure Redis Cache
-//  resource cacheSubnet 'subnets' existing = {
-//    name: cacheSubnetName
-//  }
 }
 
+// Database Subnet as a Child Resource
+resource databaseSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-05-01' = {
+  name: databaseSubnetName
+  parent: virtualNetwork
+  properties: {
+    addressPrefix: '10.0.0.0/24'
+    delegations: [
+      {
+        name: '${prefix}-subnet-delegation'
+        properties: {
+          serviceName: 'Microsoft.DBforPostgreSQL/flexibleServers'
+        }
+      }
+    ]
+  }
+}
+
+// Web App Subnet as a Child Resource
+resource webappSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-05-01' = {
+  name: webappSubnetName
+  parent: virtualNetwork
+  properties: {
+    addressPrefix: '10.0.1.0/24'
+    delegations: [
+      {
+        name: '${prefix}-subnet-delegation-web'
+        properties: {
+          serviceName: 'Microsoft.Web/serverFarms'
+        }
+      }
+    ]
+  }
+}
+
+// Private DNS Zone for PostgreSQL
 resource privateDnsZone 'Microsoft.Network/privateDnsZones@2020-06-01' = {
   name: '${pgServerName}.private.postgres.database.azure.com'
   location: 'global'
   tags: tags
   dependsOn: [
     virtualNetwork
+    databaseSubnet
+    webappSubnet
   ]
 }
 
-// Added for Azure Redis Cache
-//resource privateDnsZoneCache 'Microsoft.Network/privateDnsZones@2020-06-01' = {
-//  name: 'privatelink.redis.cache.windows.net'
-//  location: 'global'
-//  tags: tags
-//  dependsOn:[
-//    virtualNetwork
-//  ]
-//}
-
+// Link Private DNS Zone to Virtual Network
 resource privateDnsZoneLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06-01' = {
   parent: privateDnsZone
   name: '${pgServerName}-link'
@@ -107,191 +92,84 @@ resource privateDnsZoneLink 'Microsoft.Network/privateDnsZones/virtualNetworkLin
       id: virtualNetwork.id
     }
   }
+  dependsOn: [
+    privateDnsZone
+  ]
 }
 
-// Added for Azure Redis Cache
-//resource privateDnsZoneLinkCache 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06-01' = {
-// parent: privateDnsZoneCache
-// name: 'privatelink.redis.cache.windows.net-applink'
-// location: 'global'
-// properties: {
-//   registrationEnabled: false
-//   virtualNetwork: {
-//     id: virtualNetwork.id
-//   }
-// }
-//}
-
-
-//resource cachePrivateEndpoint 'Microsoft.Network/privateEndpoints@2023-05-01' = {
- // name: cachePrivateEndpointName
-//  location: location
- // properties: {
- //   subnet: {
- //     id: virtualNetwork::cacheSubnet.id
- //   }
- //   privateLinkServiceConnections: [
- //     {
- //       name: cachePrivateEndpointName
-  //      properties: {
-  //        privateLinkServiceId: redisCache.id
-  //        groupIds: [
- //           'redisCache'
-  //        ]
- //       }
- //     }
- //   ]
- // }
-
- // resource cachePvtEndpointDnsGroup 'privateDnsZoneGroups' = {
- //   name: cachePvtEndpointDnsGroupName
- //   properties: {
- //     privateDnsZoneConfigs: [
- //       {
- //         name: 'privatelink-redis-cache-windows-net'
- //         properties: {
- //           privateDnsZoneId: privateDnsZoneCache.id
-//          }
- //       }
- //     ]
- //   }
-//  }
-//}
-
-resource web 'Microsoft.Web/sites@2022-03-01' = {
-  name: '${prefix}-app-service'
+// Storage Account
+resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
+  name: storageAccountName
   location: location
-  tags: union(tags, { 'azd-service-name': 'web' })
-  kind: 'app,linux'
+  tags: tags
+  kind: 'StorageV2'
+  sku: {
+    name: 'Standard_LRS'
+  }
   properties: {
-    serverFarmId: appServicePlan.id
-    siteConfig: {
-      alwaysOn: true
-      linuxFxVersion: 'PYTHON|3.11'
-      ftpsState: 'Disabled'
-      appCommandLine: 'startup.sh'
-      minTlsVersion: '1.2'
-    }
-    httpsOnly: true
-  }
-  identity: {
-    type: 'SystemAssigned'
-  }
-  
-  resource appSettings 'config' = {
-    name: 'appsettings'
-    properties: {
-      SCM_DO_BUILD_DURING_DEPLOYMENT: 'true'
-      AZURE_POSTGRESQL_CONNECTIONSTRING: 'dbname=${pythonAppDatabase.name} host=${postgresServer.name}.postgres.database.azure.com port=5432 sslmode=require user=${postgresServer.properties.administratorLogin} password=${databasePassword}'
-      SECRET_KEY: secretKey
-      FLASK_DEBUG: 'False'
-      //Added for Azure Redis Cache
- //     AZURE_REDIS_CONNECTIONSTRING: 'rediss://:${redisCache.listKeys().primaryKey}@${redisCache.name}.redis.cache.windows.net:6380/0'
-    }
-  }
-
-  resource logs 'config' = {
-    name: 'logs'
-    properties: {
-      applicationLogs: {
-        fileSystem: {
-          level: 'Verbose'
+    networkAcls: {
+      bypass: 'AzureServices'
+      virtualNetworkRules: [
+        {
+          id: databaseSubnet.id
         }
-      }
-      detailedErrorMessages: {
-        enabled: true
-      }
-      failedRequestsTracing: {
-        enabled: true
-      }
-      httpLogs: {
-        fileSystem: {
-          enabled: true
-          retentionInDays: 1
-          retentionInMb: 35
+        {
+          id: webappSubnet.id
         }
-      }
+      ]
+      defaultAction: 'Deny'
     }
+    allowBlobPublicAccess: false
   }
-
-  resource webappVnetConfig 'networkConfig' = {
-    name: 'virtualNetwork'
-    properties: {
-      subnetResourceId: virtualNetwork::webappSubnet.id
-    }
-  }
-
-  dependsOn: [ virtualNetwork ]
-
+  dependsOn: [
+    databaseSubnet
+    webappSubnet
+  ]
 }
 
-resource webdiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
-  name: 'AllLogs'
-  scope: web
+// Blob Services
+resource blobServices 'Microsoft.Storage/storageAccounts/blobServices@2022-09-01' = {
+  parent: storageAccount
+  name: 'default'
+}
+
+// Blob Container
+resource blobContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2022-09-01' = {
+  parent: blobServices
+  name: mediaContainerName
   properties: {
-    workspaceId: logAnalyticsWorkspace.id
-    logs: [
-      {
-        category: 'AppServiceHTTPLogs'
-        enabled: true
-      }
-      {
-        category: 'AppServiceConsoleLogs'
-        enabled: true
-      }
-      {
-        category: 'AppServiceAppLogs'
-        enabled: true
-      }
-      {
-        category: 'AppServiceAuditLogs'
-        enabled: true
-      }
-      {
-        category: 'AppServiceIPSecAuditLogs'
-        enabled: true
-      }
-      {
-        category: 'AppServicePlatformLogs'
-        enabled: true
-      }
-    ]
-    metrics: [
-      {
-        category: 'AllMetrics'
-        enabled: true
-      }
-    ]
+    publicAccess: 'None'
   }
 }
 
+// Web App Plan
 resource appServicePlan 'Microsoft.Web/serverfarms@2021-03-01' = {
   name: '${prefix}-service-plan'
   location: location
   tags: tags
   sku: {
     name: 'B1'
+    tier: 'Basic'
   }
   properties: {
     reserved: true
   }
 }
 
+// Log Analytics Workspace
 resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2020-03-01-preview' = {
   name: '${prefix}-workspace'
   location: location
   tags: tags
-  properties: any({
+  properties: {
     retentionInDays: 30
-    features: {
-      searchVersion: 1
-    }
     sku: {
       name: 'PerGB2018'
     }
-  })
+  }
 }
 
+// Application Insights Module
 module applicationInsightsResources 'appinsights.bicep' = {
   name: 'applicationinsights-resources'
   params: {
@@ -302,10 +180,11 @@ module applicationInsightsResources 'appinsights.bicep' = {
   }
 }
 
+// PostgreSQL Server
 resource postgresServer 'Microsoft.DBforPostgreSQL/flexibleServers@2022-01-20-preview' = {
+  name: pgServerName
   location: location
   tags: tags
-  name: pgServerName
   sku: {
     name: 'Standard_B1ms'
     tier: 'Burstable'
@@ -322,7 +201,7 @@ resource postgresServer 'Microsoft.DBforPostgreSQL/flexibleServers@2022-01-20-pr
       geoRedundantBackup: 'Disabled'
     }
     network: {
-      delegatedSubnetResourceId: virtualNetwork::databaseSubnet.id
+      delegatedSubnetResourceId: databaseSubnet.id
       privateDnsZoneArmResourceId: privateDnsZone.id
     }
     highAvailability: {
@@ -341,38 +220,151 @@ resource postgresServer 'Microsoft.DBforPostgreSQL/flexibleServers@2022-01-20-pr
   ]
 }
 
+// PostgreSQL Database
 resource pythonAppDatabase 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2022-01-20-preview' = {
   parent: postgresServer
   name: 'pythonapp'
 }
 
-//added for Redis Cache
-//resource redisCache 'Microsoft.Cache/redis@2023-04-01' = {
-//  location:location
-//  name:cacheServerName
-//  properties:{
-//    sku:{
-//      capacity: 1
-//      family:'C'
-//      name:'Standard'
-//    }
-//    enableNonSslPort:false
-//    redisVersion:'6'
-//    publicNetworkAccess:'Disabled'
-//    minimumTlsVersion: '1.2'
-//  }
-//}    
+// Web App
+resource web 'Microsoft.Web/sites@2022-03-01' = {
+  name: '${prefix}-app-service'
+  location: location
+  tags: union(tags, { 'azd-service-name': 'web' })
+  kind: 'app,linux'
+  properties: {
+    serverFarmId: appServicePlan.id
+    siteConfig: {
+      alwaysOn: true
+      linuxFxVersion: 'PYTHON|3.11'
+      ftpsState: 'Disabled'
+      appCommandLine: 'startup.sh'
+      minTlsVersion: '1.2'
+      appSettings: [
+        {
+          name: 'SCM_DO_BUILD_DURING_DEPLOYMENT'
+          value: 'true'
+        }
+        {
+          name: 'AZURE_POSTGRESQL_CONNECTIONSTRING'
+          value: 'dbname=${pythonAppDatabase.name} host=${postgresServer.name}.postgres.database.azure.com port=5432 sslmode=require user=${postgresServer.properties.administratorLogin} password=${databasePassword}'
+        }
+        {
+          name: 'SECRET_KEY'
+          value: secretKey
+        }
+        {
+          name: 'FLASK_DEBUG'
+          value: 'False'
+        }
+        // Azure Storage Settings
+        {
+          name: 'AZURE_STORAGE_ACCOUNT_NAME'
+          value: storageAccount.name
+        }
+        // Removed AZURE_STORAGE_CONNECTION_STRING to enhance security
+        {
+          name: 'MEDIA_CONTAINER_NAME'
+          value: blobContainer.name
+        }
+      ]
+    }
+    httpsOnly: true
+  }
+  identity: {
+    type: 'SystemAssigned'
+  }
 
+  // Removed explicit dependsOn entries
+}
+
+// Diagnostic Settings for Web App
+resource webdiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: 'AllLogs'
+  scope: web
+  properties: {
+    workspaceId: logAnalyticsWorkspace.id
+    logs: [
+      {
+        category: 'AppServiceHTTPLogs'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+      {
+        category: 'AppServiceConsoleLogs'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+      {
+        category: 'AppServiceAppLogs'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+      {
+        category: 'AppServiceAuditLogs'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+      {
+        category: 'AppServiceIPSecAuditLogs'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+      {
+        category: 'AppServicePlatformLogs'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+    ]
+    metrics: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+    ]
+  }
+}
+
+// Web App App Settings as a Separate Resource
+resource webAppSettings 'Microsoft.Web/sites/config@2022-03-01' = {
+  name: 'appsettings'
+  parent: web
+  properties: {
+    // Additional app settings can be added here if needed
+  }
+}
+
+// Outputs
 output WEB_URI string = 'https://${web.properties.defaultHostName}'
 output APPLICATIONINSIGHTS_CONNECTION_STRING string = applicationInsightsResources.outputs.APPLICATIONINSIGHTS_CONNECTION_STRING
 
-resource webAppSettings 'Microsoft.Web/sites/config@2022-03-01' existing = {
-  name: web::appSettings.name
-  parent: web
-}
+// Removed WEB_APP_SETTINGS output to fix the compilation error
 
-var webAppSettingsKeys = map(items(webAppSettings.list().properties), setting => setting.key)
-output WEB_APP_SETTINGS array = webAppSettingsKeys
-output WEB_APP_LOG_STREAM string = format('https://portal.azure.com/#@/resource{0}/logStream', web.id)
-output WEB_APP_SSH string = format('https://{0}.scm.azurewebsites.net/webssh/host', web.name)
-output WEB_APP_CONFIG string = format('https://portal.azure.com/#@/resource{0}/configuration', web.id)
+output WEB_APP_LOG_STREAM string = 'https://${web.properties.defaultHostName}/api/logs/stream'
+output WEB_APP_SSH string = 'https://${web.properties.defaultHostName}/ssh'
+output WEB_APP_CONFIG object = web.properties.siteConfig
+
+output STORAGE_ACCOUNT_NAME string = storageAccount.name
+output MEDIA_CONTAINER_NAME string = blobContainer.name
