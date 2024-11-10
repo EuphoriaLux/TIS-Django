@@ -1,6 +1,4 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
-# azure.yaml is an azd configuration file and isn't used by the sample application. 
-
 name: python-app-service-postgresql-redis-infra
 metadata:
   template: python-app-service-postgresql-redis-infra@0.0.1-beta
@@ -9,26 +7,42 @@ services:
     project: .
     language: py
     host: appservice
+    pre-deploy:
+      - pip install -r requirements.txt
+      - python manage.py collectstatic --noinput
+    env:
+      AZURE_STORAGE_ACCOUNT_NAME: devqgemc2diauefestorage
+      AZURE_STORAGE_ACCOUNT_KEY: ${AZURE_STORAGE_ACCOUNT_KEY}
+      AZURE_STORAGE_CONTAINER: static
+      DJANGO_SETTINGS_MODULE: azureproject.production
 hooks:
   postprovision:
+    windows:
+      shell: sh
+      run: |
+        echo ""
+        echo "App Service app has the following settings:"
+        echo "$WEB_APP_SETTINGS"
+        echo ""
+        echo "See the settings in the portal: $WEB_APP_CONFIG"
+      interactive: true
+      continueOnError: true
     posix: 
       shell: sh
       run: echo $'\n\nApp Service app has the following settings:\n' && echo "$WEB_APP_SETTINGS" | jq -r '.[]' | sed 's/\(.*\)/\t- \1/' && echo -e $"\nSee the settings in the portal:\033[1;36m $WEB_APP_CONFIG" 
       interactive: true
       continueOnError: true
+  postdeploy:
     windows:
-      shell: pwsh
-      run: Write-Host "`n`nApp Service app has the following settings:`n" $WEB_APP_SETTINGS | ConvertFrom-Json | ForEach-Object { Write-Host "\t- $_" }
+      shell: sh
+      run: |
+        echo ""
+        echo "Open SSH session to App Service container at: $WEB_APP_SSH"
+        echo "Stream App Service logs at: $WEB_APP_LOG_STREAM"
       interactive: true
       continueOnError: true
-  postdeploy:
     posix: 
       shell: sh
       run: echo -e $"\n\nOpen SSH session to App Service container at:\033[1;36m $WEB_APP_SSH\033[0m" && echo -e $"Stream App Service logs at:\033[1;36m $WEB_APP_LOG_STREAM"
-      interactive: true
-      continueOnError: true
-    windows:
-      shell: pwsh
-      run: Write-Host "`n`nOpen SSH session to App Service container at:`n" $WEB_APP_SSH; Write-Host "Stream App Service logs at:`n" $WEB_APP_LOG_STREAM
       interactive: true
       continueOnError: true

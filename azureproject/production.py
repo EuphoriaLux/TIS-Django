@@ -1,6 +1,8 @@
 import os
 from .settings import *  # noqa
 from .settings import BASE_DIR
+# Add at the top of production.py
+import logging
 
 # Configure the domain name using the environment variable
 CUSTOM_DOMAINS = os.environ.get('CUSTOM_DOMAINS', '').split(',')
@@ -17,6 +19,42 @@ CSRF_TRUSTED_ORIGINS += [f'https://{domain.strip()}' for domain in CUSTOM_DOMAIN
 
 DEBUG = False
 
+logger = logging.getLogger(__name__)
+
+# Add after your storage configuration
+STATICFILES_UPLOAD_LOGGER = logging.getLogger('staticfiles.upload')
+STATICFILES_UPLOAD_LOGGER.setLevel(logging.INFO)
+
+# Configure logging handler if needed
+if not STATICFILES_UPLOAD_LOGGER.handlers:
+    handler = logging.StreamHandler()
+    handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+    STATICFILES_UPLOAD_LOGGER.addHandler(handler)
+
+# Add to your production.py
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'azure.storage': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+    },
+}
+
 # WhiteNoise configuration
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -30,34 +68,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-<<<<<<< HEAD
-
-
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "static"),
-]
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-
-# Configure Postgres database based on connection string of the libpq Keyword/Value form
-# https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING
-conn_str = os.environ['AZURE_POSTGRESQL_CONNECTIONSTRING']
-conn_str_params = {pair.split('=')[0]: pair.split('=')[1] for pair in conn_str.split(' ')}
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': conn_str_params['dbname'],
-        'HOST': conn_str_params['host'],
-        'USER': conn_str_params['user'],
-        'PASSWORD': conn_str_params['password'],
-=======
 # Azure Storage Settings
 AZURE_ACCOUNT_NAME = os.getenv('AZURE_STORAGE_ACCOUNT_NAME')
 AZURE_ACCOUNT_KEY = os.getenv('AZURE_STORAGE_ACCOUNT_KEY')
@@ -104,9 +114,7 @@ if conn_str:
             'USER': conn_str_params['user'],
             'PASSWORD': conn_str_params['password'],
         }
->>>>>>> af20a79 (update working)
     }
-}
 
 # Cache settings
 CACHES = {
@@ -118,15 +126,10 @@ CACHES = {
 
 SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
 
-#SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+# Add storages to INSTALLED_APPS if not already present
+if 'storages' not in INSTALLED_APPS:
+    INSTALLED_APPS += ['storages']
 
-#CACHES = {
-#        "default": {  
-#            "BACKEND": "django_redis.cache.RedisCache",
-#            "LOCATION": os.environ.get('AZURE_REDIS_CONNECTIONSTRING'),
-#            "OPTIONS": {
-#                "CLIENT_CLASS": "django_redis.client.DefaultClient",
-#                "COMPRESSOR": "django_redis.compressors.zlib.ZlibCompressor",
-#        },
-#    }
-#}
+# Azure Storage-specific settings
+AZURE_OVERWRITE_FILES = True
+AZURE_SSL = True
