@@ -1,7 +1,9 @@
+Here's the complete updated cruise_detail.html file:
+
+```html
 {% extends 'base.html' %}
 {% load static %}
-{% load i18n %}  <!-- Add this line to load the i18n template tags -->
-
+{% load i18n %}
 
 {% block title %}{{ cruise.name }} - Travel in Style{% endblock %}
 
@@ -13,17 +15,27 @@
 {% endblock %}
 
 {% block content %}
-<div class="cruise-header" style="background-image: url('{{ cruise.get_image_url }}');">
+<!-- Breadcrumbs -->
+<div class="page-nav" style="background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('{{ cruise.get_image_url }}'); background-size: cover; background-position: center;">
     <div class="container">
-        <h1 class="display-4">{{ cruise.name }}</h1>
-        <p class="lead">{{ cruise.cruise_type.name }} Cruise by {{ cruise.company.name }}</p>
+        <h2 class="text-white">{{ cruise.name }}</h2>
+        <ul class="text-white">
+            <li><a href="{% url 'home' %}" class="text-white"><i class="fas fa-home"></i> {% trans "Home" %}</a></li>
+            <li><i class="fas fa-angle-double-right"></i></li>
+            <li><a href="{% url 'cruises:cruise_list' %}" class="text-white">{% trans "Cruises" %}</a></li>
+            <li><i class="fas fa-angle-double-right"></i></li>
+            <li>{{ cruise.name }}</li>
+        </ul>
+        <!-- Add cruise type and company name -->
+        <p class="lead text-white mt-3">
+            {{ cruise.cruise_type.name }} Cruise by {{ cruise.company.name }}
+        </p>
     </div>
 </div>
 
-
-
 <div class="container mt-5">
     <div class="row">
+        <!-- Main Content -->
         <div class="col-md-8">
             <h2>About This Cruise</h2>
             
@@ -40,41 +52,47 @@
                 {{ cruise.description|linebreaks|safe }}
             </div>
             
-            <h3 class="mt-5">Key Features</h3>
-            <div class="row feature-icons">
-                <div class="col-md-4 text-center">
-                    <i class="fas fa-ship"></i>
-                    <h5>{{ cruise.cruise_type.name }}</h5>
-                </div>
-                <div class="col-md-4 text-center">
-                    <i class="fas fa-users"></i>
-                    <h5>{{ cruise.sessions.first.capacity }} Passengers</h5>
-                </div>
-                <div class="col-md-4 text-center">
-                    <i class="fas fa-map-marked-alt"></i>
-                    <h5>Multiple Destinations</h5>
+            <!-- Key Features -->
+            <div class="feature-icons mt-5">
+                <h3 class="mb-4">Key Features</h3>
+                <div class="row">
+                    <div class="col-md-4 text-center">
+                        <i class="fas fa-ship"></i>
+                        <h5>{{ cruise.cruise_type.name }}</h5>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <i class="fas fa-users"></i>
+                        <h5>{{ cruise.sessions.first.capacity }} Passengers</h5>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <i class="fas fa-map-marked-alt"></i>
+                        <h5>Multiple Destinations</h5>
+                    </div>
                 </div>
             </div>
 
+            <!-- Itinerary -->
             <div class="itinerary-section">
-                <h3>Cruise Itinerary</h3>
-                {% for day in itinerary %}
-                    <div class="itinerary-day">
+                <h3 class="mb-4">Cruise Itinerary</h3>
+                <div class="timeline">
+                    {% for day in itinerary %}
+                    <div class="timeline-item">
                         <h4>Day {{ day.day }}: {{ day.port }}</h4>
                         <p>{{ day.description }}</p>
                         {% if day.arrival_time %}
-                            <p><strong>Arrival Time:</strong> {{ day.arrival_time|time:"H:i" }}</p>
+                        <p><i class="fas fa-arrow-down text-success"></i> <strong>Arrival:</strong> {{ day.arrival_time|time:"H:i" }}</p>
                         {% endif %}
                         {% if day.departure_time %}
-                            <p><strong>Departure Time:</strong> {{ day.departure_time|time:"H:i" }}</p>
+                        <p><i class="fas fa-arrow-up text-danger"></i> <strong>Departure:</strong> {{ day.departure_time|time:"H:i" }}</p>
                         {% endif %}
                     </div>
-                {% endfor %}
+                    {% endfor %}
+                </div>
             </div>
-            
 
+            <!-- Amenities -->
             <div class="amenities-section">
-                <h3>Onboard Amenities</h3>
+                <h3 class="mb-4">Onboard Amenities</h3>
                 <div class="row">
                     <div class="col-md-6">
                         <div class="amenity-item">
@@ -99,40 +117,59 @@
                 </div>
             </div>
         </div>
+
+        <!-- Sidebar -->
         <div class="col-md-4">
             <div class="quick-info-card">
                 <h3>Quick Info</h3>
                 <ul>
-                    <li><i class="far fa-calendar-alt"></i> Duration: 
+                    <li>
+                        <i class="far fa-calendar-alt"></i> Duration: 
                         {% with session=cruise.sessions.first %}
                             {{ session.start_date|date:"M d" }} - {{ session.end_date|date:"M d, Y" }}
+                            <small class="text-muted d-block mt-1">
+                                ({{ session.start_date|timesince:session.end_date }})
+                            </small>
                         {% endwith %}
                     </li>
+                    <li><i class="fas fa-ship"></i> Ship: {{ cruise.company.name }}</li>
                     <li><i class="fas fa-phone"></i> Contact: +1 (800) 123-4567</li>
                     <li><i class="fas fa-envelope"></i> Email: info@travelinstyle.com</li>
+                    {% if cruise.flyer_pdf %}
                     <li>
                         <i class="fas fa-file-pdf"></i> 
-                        <a href="{{ cruise.flyer_pdf.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                            Download Cruise Flyer
+                        <a href="{{ cruise.flyer_pdf.url }}" target="_blank" class="btn btn-outline-primary btn-block">
+                            <i class="fas fa-download mr-2"></i> Download Cruise Flyer
                         </a>
                     </li>
+                    {% endif %}
                 </ul>
-            </div>
-            
-            <div class="mt-4">
-                <h4>Why Choose This Cruise?</h4>
-                <ul>
-                    <li>Luxurious accommodations</li>
-                    <li>Gourmet dining experiences</li>
-                    <li>Exciting shore excursions</li>
-                    <li>World-class entertainment</li>
-                </ul>
+
+                <!-- Price Range -->
+                <div class="price-range mt-4">
+                    <h4>Price Range</h4>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="h3 text-primary mb-0">€{{ cruise.get_min_price|floatformat:2 }}</span>
+                        <span class="text-muted">Starting from</span>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions mt-4">
+                    <button class="btn btn-primary btn-lg btn-block mb-2" onclick="document.getElementById('booking-section').scrollIntoView({behavior: 'smooth'})">
+                        Book Now
+                    </button>
+                    <button class="btn btn-outline-secondary btn-block" onclick="window.print()">
+                        <i class="fas fa-print mr-2"></i> Print Itinerary
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="booking-process container mt-5">
+<!-- Booking Section -->
+<div id="booking-section" class="booking-process container mt-5 mb-5">
     <h2 class="text-center mb-4">Book Your Cruise</h2>
     <div class="booking-steps">
         <div class="step active" id="step1">
@@ -141,62 +178,71 @@
         </div>
         <div class="step" id="step2">
             <span class="step-number">2</span>
-            <span class="step-text">Choose Category</span>
+            <span class="step-text">Choose Cabin</span>
         </div>
     </div>
 
     <div class="booking-content">
+        <!-- Date Selection -->
         <div class="step-content active" id="step1-content">
             <h3>{% trans "Available Cruise Dates" %}</h3>
             <div class="available-dates mt-3">
                 <ul class="date-list">
                     {% for session in cruise.sessions.all %}
-                    <li data-session-id="{{ session.id }}">
-                        <span class="date">{{ session.start_date|date:"M d, Y" }} - {{ session.end_date|date:"M d, Y" }}</span>
-                        <span class="capacity">{% trans "Available" %}: {{ session.capacity }}</span>
-                        {% if session.is_summer_special %}
-                        <span class="summer-special">{{ session.get_summer_special_message }}</span>
-                        {% endif %}
-                        <button class="btn btn-sm btn-primary select-date-btn">{% trans "Select" %}</button>
+                    <li data-session-id="{{ session.id }}" class="p-3 mb-2 rounded">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="date">{{ session.start_date|date:"M d, Y" }} - {{ session.end_date|date:"M d, Y" }}</span>
+                                <span class="capacity d-block text-muted">{% trans "Available" %}: {{ session.capacity }}</span>
+                                {% if session.is_summer_special %}
+                                <span class="summer-special">{{ session.get_summer_special_message }}</span>
+                                {% endif %}
+                            </div>
+                            <button class="btn btn-primary select-date-btn">{% trans "Select" %}</button>
+                        </div>
                     </li>
                     {% endfor %}
                 </ul>
             </div>
-        </div>        
+        </div>
+
+        <!-- Cabin Selection -->
         <div class="step-content" id="step2-content">
             <h3>Select Your Cabin Type</h3>
             <div class="cabin-selection">
                 {% for cabin_price in cabin_prices %}
-                    <div class="cabin-card" data-cabin-price-id="{{ cabin_price.id }}" data-session-id="{{ cabin_price.session.id }}">
-                        <div class="cabin-header">
-                            <h4 class="cabin-name">{{ cabin_price.cabin_type.name }}</h4>
-                            <span class="cabin-price">€{{ cabin_price.price|floatformat:2 }}</span>
-                        </div>
+                <div class="cabin-card" data-cabin-price-id="{{ cabin_price.id }}" data-session-id="{{ cabin_price.session.id }}">
+                    <div class="cabin-header">
+                        <h4 class="cabin-name">{{ cabin_price.cabin_type.name }}</h4>
+                        <span class="cabin-price">€{{ cabin_price.price|floatformat:2 }}</span>
+                    </div>
                     <div class="cabin-content">
                         <div class="cabin-images">
                             <div class="image-slider">
-                                <!-- Add actual cabin images here -->
-                                <img src="{% static 'images/placeholder1.jpg' %}" alt="Cabin Image 1">
-                                <img src="{% static 'images/placeholder2.jpg' %}" alt="Cabin Image 2">
-                                <img src="{% static 'images/placeholder3.jpg' %}" alt="Cabin Image 3">
+                                {% for image in cabin_price.cabin_type.images.all %}
+                                <img src="{{ image.image.url }}" alt="{{ cabin_price.cabin_type.name }}">
+                                {% empty %}
+                                <img src="{% static 'images/placeholder.jpg' %}" alt="Placeholder">
+                                {% endfor %}
                             </div>
                         </div>
-                        <div class="cabin-details">
-                            <p class="cabin-description">{{ cabin_price.cabin_type.description|linebreaks }}</p>
+                        <div class="cabin-details p-3">
+                            <p class="cabin-description">{{ cabin_price.cabin_type.description }}</p>
                             <ul class="cabin-features">
                                 <li><strong>Deck:</strong> {{ cabin_price.cabin_type.deck }}</li>
                                 <li><strong>Capacity:</strong> {{ cabin_price.cabin_type.capacity }} persons</li>
                             </ul>
                         </div>
                     </div>
-                    <div class="cabin-actions">
+                    <div class="cabin-actions p-3">
                         <button class="btn btn-primary select-cabin-btn">Select</button>
                     </div>
                 </div>
                 {% endfor %}
             </div>
-            
-            <div class="navigation-buttons mt-3">
+
+            <!-- Navigation Buttons -->
+            <div class="navigation-buttons mt-4">
                 <button class="btn btn-secondary" id="backToDate">Back to Date Selection</button>
                 <button class="btn btn-primary" id="proceedToBooking">Proceed to Booking</button>
             </div>
@@ -206,7 +252,6 @@
 {% endblock %}
 
 {% block extra_js %}
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.js"></script>
 <script>
     var cruiseId = {{ cruise.id }};
@@ -216,16 +261,31 @@
         let selectedSessionId = null;
         let selectedCabinPriceId = null;
 
+        // Initialize slick carousel
+        $('.image-slider').slick({
+            dots: true,
+            infinite: true,
+            speed: 500,
+            fade: true,
+            cssEase: 'linear',
+            autoplay: true,
+            autoplaySpeed: 3000
+        });
+
         // Date selection
         const dateList = document.querySelector('.date-list');
         dateList.addEventListener('click', function(e) {
             if (e.target.classList.contains('select-date-btn')) {
                 const listItem = e.target.closest('li');
                 selectedSessionId = listItem.dataset.sessionId;
-                document.querySelectorAll('.date-list li').forEach(li => li.classList.remove('selected'));
-                listItem.classList.add('selected');
                 
-                // Filter cabin types based on selected session
+                // Update UI
+                document.querySelectorAll('.date-list li').forEach(li => {
+                    li.classList.remove('bg-light', 'border-primary');
+                });
+                listItem.classList.add('bg-light', 'border-primary');
+
+                // Filter cabin types
                 document.querySelectorAll('.cabin-card').forEach(card => {
                     if (card.dataset.sessionId === selectedSessionId) {
                         card.style.display = 'block';
@@ -234,6 +294,7 @@
                     }
                 });
 
+                // Move to next step
                 document.getElementById('step1').classList.remove('active');
                 document.getElementById('step2').classList.add('active');
                 document.getElementById('step1-content').classList.remove('active');
@@ -247,18 +308,17 @@
             if (e.target.classList.contains('select-cabin-btn')) {
                 const cabinCard = e.target.closest('.cabin-card');
                 selectedCabinPriceId = cabinCard.dataset.cabinPriceId;
-                document.querySelectorAll('.cabin-card').forEach(card => card.classList.remove('selected'));
-                cabinCard.classList.add('selected');
                 
-                // Update button text and style
-                document.querySelectorAll('.select-cabin-btn').forEach(btn => {
-                    btn.textContent = 'Select';
-                    btn.classList.remove('btn-success');
-                    btn.classList.add('btn-primary');
+                // Update UI
+                document.querySelectorAll('.cabin-card').forEach(card => {
+                    card.classList.remove('selected');
+                    card.querySelector('.select-cabin-btn').textContent = 'Select';
+                    card.querySelector('.select-cabin-btn').classList.replace('btn-success', 'btn-primary');
                 });
+                
+                cabinCard.classList.add('selected');
                 e.target.textContent = 'Selected';
-                e.target.classList.remove('btn-primary');
-                e.target.classList.add('btn-success');
+                e.target.classList.replace('btn-primary', 'btn-success');
             }
         });
 
@@ -276,15 +336,6 @@
             } else {
                 alert('Please select both a date and a cabin type before proceeding.');
             }
-        });
-
-        // Initialize slick carousel for cabin images
-        $('.image-slider').slick({
-            dots: true,
-            infinite: true,
-            speed: 500,
-            fade: true,
-            cssEase: 'linear'
         });
     });
 </script>
