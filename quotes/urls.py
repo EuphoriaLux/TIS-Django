@@ -1,9 +1,9 @@
-# quote/urls.py
+# quotes/urls.py
 
 from django.urls import path
 from . import views
 
-app_name = 'quote'
+app_name = 'quotes'
 
 urlpatterns = [
     path('create-quote/<int:cruise_id>/', views.create_quote, name='create_quote'),

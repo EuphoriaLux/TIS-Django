@@ -29,7 +29,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'cruises',
-    'quote',
+    'quotes',
     'formtools',
     'crispy_forms',
     'crispy_bootstrap4',

@@ -12,7 +12,7 @@ urlpatterns = [
     path('about/', about, name='about'),
     path('contact/', contact, name='contact'),
     path('featured-cruises/', FeaturedCruisesView.as_view(), name='featured_cruises'),
-    path('quote/', include('quote.urls')),  # Update this line
+    path('quotes/', include('quotes.urls', namespace='quote')),  # Add this line
 ]
 
 if settings.DEBUG:

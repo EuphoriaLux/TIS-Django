@@ -94,60 +94,70 @@
         </div>
     </div>
 
-
-    <div class="popular-pack no-bgpack container-fluid">
+    <!-- Featured Cruises Section -->
+    <div class="popular-pack container-fluid py-5 bg-light">
         <div class="container">
             <div class="session-title">
-                <h2>Popular Packages</h2>
-                <p>Discover our most sought-after cruise packages for unforgettable journeys.</p>
+                <h2>Featured Cruises</h2>
+                <p>Discover our most sought-after cruise packages for unforgettable journeys</p>
             </div>
-            <div class="row pack-row">
+            <div class="row">
                 {% for cruise in featured_cruises %}
-                {% load custom_filters %}
-
-                <div class="col-lg-4 col-md-6 col-sm-6">
+                <div class="col-lg-4 col-md-6 mb-4">
                     <div class="pack-col">
-                        <img src="{{ cruise.get_image_url }}" alt="{{ cruise.name }}">
-                        <div class="revire row no-margin">
-                            <ul class="rat">
-                                {% for i in "12345"|make_list %}
-                                <li><i class="fa fa-star"></i></li>
-                                {% endfor %}
-                            </ul>
-                            <span class="pric">
-                                From €{{ cruise.min_category_price|floatformat:2 }}
+                        {% if cruise.image %}
+                            <img src="{{ cruise.image.url }}" alt="{{ cruise.name }}">
+                        {% elif cruise.image_url %}
+                            <img src="{{ cruise.image_url }}" alt="{{ cruise.name }}">
+                        {% else %}
+                            <img src="{% static 'assets/images/default_cruise.jpg' %}" alt="{{ cruise.name }}">
+                        {% endif %}
+
+                        <div class="revire">
+                            <span class="price-tag">
+                                {% if cruise.min_price %}
+                                    From €{{ cruise.min_price|floatformat:2 }}
+                                {% else %}
+                                    Price on request
+                                {% endif %}
                             </span>
+                            {% if cruise.difficulty_level %}
+                            <div class="difficulty">
+                                {% for i in cruise.difficulty_level|rjust:5 %}
+                                    <i class="fa fa-star{% if forloop.counter > cruise.difficulty_level %}-o{% endif %}"></i>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
                         </div>
-                        <div class="detail row no-margin">
+
+                        <div class="detail">
                             <h4>{{ cruise.name }}</h4>
                             <p>{{ cruise.description|truncatewords:20 }}</p>
                         </div>
+
                         <div class="options">
                             <div class="option-item">
-                                <i class="fas fa-ship" title="Cruise Type"></i>
+                                <i class="fas fa-ship"></i>
                                 <span>{{ cruise.cruise_type.name }}</span>
                             </div>
                             <div class="option-item">
-                                <i class="fas fa-building" title="Company"></i>
-                                <span>{{ cruise.company.name }}</span>
+                                <i class="fas fa-building"></i>
+                                <span>{{ cruise.ship.company.name }}</span>
                             </div>
+                            {% if cruise.next_session %}
                             <div class="option-item">
-                                <i class="fas fa-calendar-alt" title="Date"></i>
+                                <i class="fas fa-calendar-alt"></i>
                                 <span>{{ cruise.next_session.start_date|date:"M d, Y" }}</span>
                             </div>
                             <div class="option-item">
-                                <i class="fas fa-clock" title="Duration"></i>
-                                <span>
-                                {% if cruise.next_session %}
-                                    {{ cruise.next_session.start_date|duration_in_days:cruise.next_session.end_date }}
-                                {% else %}
-                                    Duration varies
-                                {% endif %}
-                                </span>
+                                <i class="fas fa-clock"></i>
+                                <span>{{ cruise.next_session.duration }} days</span>
                             </div>
+                            {% endif %}
                         </div>
+
                         <div class="action-buttons">
-                            <a href="{% url 'cruises:cruise_detail' cruise.id %}" class="btn btn-primary">View Dates</a>
+                            <a href="{% url 'cruises:cruise_detail' cruise.pk %}" class="btn btn-primary">View Details</a>
                         </div>
                     </div>
                 </div>
