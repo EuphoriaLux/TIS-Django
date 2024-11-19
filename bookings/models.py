@@ -20,7 +20,7 @@ class BookingManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().select_related(
             'user',
-            'quote',
+            'quotes',
             'cruise_session',
             'cruise_session__cruise',
             'cruise_session__cruise__ship',

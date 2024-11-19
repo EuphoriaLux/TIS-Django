@@ -28,13 +28,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'cruises',
-    'quotes',
+    'cruises.apps.CruisesConfig',
+    'quotes.apps.QuotesConfig',
+    'bookings.apps.BookingsConfig',
     'formtools',
     'crispy_forms',
     'crispy_bootstrap4',
-    'bookings',
-    'nested_admin',
+    'nested_admin'
 ]
 
 MIDDLEWARE = [
