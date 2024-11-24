@@ -1,0 +1,13 @@
+[
+    {
+        "model": "cruises.cruisetype",
+        "pk": 1,
+        "fields": {
+            "name": "Rivers",
+            "description": "Experience scenic river cruises along Europe's most beautiful waterways",
+            "typical_duration": 7,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    }
+]

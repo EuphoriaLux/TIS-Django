@@ -1,0 +1,19 @@
+[
+    {
+        "model": "cruises.cabincategory",
+        "pk": 1,
+        "fields": {
+            "name": "Emerald | 2-Bed Cabin",
+            "description": "Comfortable 16 m² cabin on the Emerald Deck.",
+            "ship": 1,
+            "capacity": 2,
+            "deck": "Emerald",
+            "category_code": "EM2",
+            "square_meters": "16.00",
+            "is_accessible": false,
+            "has_balcony": false,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    }
+]

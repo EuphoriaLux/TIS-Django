@@ -1,0 +1,16 @@
+[
+    {
+        "model": "cruises.equipment",
+        "pk": 1,
+        "fields": {
+            "name": "Single Beds",
+            "name_de": "Einzelbetten",
+            "name_fr": "Lits simples",
+            "description": "Two single beds",
+            "description_de": "Zwei Einzelbetten",
+            "description_fr": "Deux lits simples",
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    }
+]

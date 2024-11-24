@@ -1,0 +1,1175 @@
+Loading environment variables for .env file
+[
+{
+  "model": "cruises.location",
+  "pk": 1,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.017Z",
+    "updated_at": "2024-11-19T20:53:15.017Z",
+    "is_active": true,
+    "name": "Amsterdam",
+    "country": "Netherlands",
+    "latitude": null,
+    "longitude": null,
+    "description": "",
+    "timezone": ""
+  }
+},
+{
+  "model": "cruises.location",
+  "pk": 2,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.020Z",
+    "updated_at": "2024-11-19T20:53:15.020Z",
+    "is_active": true,
+    "name": "Antwerp",
+    "country": "Belgium",
+    "latitude": null,
+    "longitude": null,
+    "description": "",
+    "timezone": ""
+  }
+},
+{
+  "model": "cruises.location",
+  "pk": 3,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.025Z",
+    "updated_at": "2024-11-19T20:53:15.025Z",
+    "is_active": true,
+    "name": "Rotterdam",
+    "country": "Netherlands",
+    "latitude": null,
+    "longitude": null,
+    "description": "",
+    "timezone": ""
+  }
+},
+{
+  "model": "cruises.location",
+  "pk": 4,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.029Z",
+    "updated_at": "2024-11-19T20:53:15.029Z",
+    "is_active": true,
+    "name": "Cologne",
+    "country": "Germany",
+    "latitude": null,
+    "longitude": null,
+    "description": "",
+    "timezone": ""
+  }
+},
+{
+  "model": "cruises.port",
+  "pk": 2,
+  "fields": {
+    "port_code": "ANR",
+    "is_embarkation_port": true,
+    "is_disembarkation_port": true,
+    "max_ship_length": null,
+    "has_customs": false
+  }
+},
+{
+  "model": "cruises.port",
+  "pk": 4,
+  "fields": {
+    "port_code": "CGN",
+    "is_embarkation_port": true,
+    "is_disembarkation_port": true,
+    "max_ship_length": null,
+    "has_customs": false
+  }
+},
+{
+  "model": "cruises.port",
+  "pk": 1,
+  "fields": {
+    "port_code": "AMS",
+    "is_embarkation_port": true,
+    "is_disembarkation_port": true,
+    "max_ship_length": null,
+    "has_customs": false
+  }
+},
+{
+  "model": "cruises.port",
+  "pk": 3,
+  "fields": {
+    "port_code": "RTM",
+    "is_embarkation_port": true,
+    "is_disembarkation_port": true,
+    "max_ship_length": null,
+    "has_customs": false
+  }
+},
+{
+  "model": "cruises.cruisecompany",
+  "pk": 1,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.033Z",
+    "updated_at": "2024-11-19T20:53:15.033Z",
+    "is_active": true,
+    "name": "Viva Cruises",
+    "slug": "viva-cruises",
+    "description": "Premium river cruise experiences across Europe",
+    "logo": "",
+    "website": "https://www.viva-cruises.com/",
+    "contact_email": "",
+    "contact_phone": "",
+    "fleet_size": 0,
+    "operating_regions": [
+      1,
+      2,
+      3
+    ]
+  }
+},
+{
+  "model": "cruises.brand",
+  "pk": 1,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.043Z",
+    "updated_at": "2024-11-19T20:53:15.043Z",
+    "is_active": true,
+    "name": "Fluss.lu",
+    "slug": "flusslu",
+    "description": "Discover the beauty of river cruising with Fluss.lu",
+    "logo": "",
+    "website": "https://www.fluss.lu/",
+    "contact_email": "",
+    "contact_phone": "",
+    "parent_company": 1,
+    "featured": true,
+    "market_segment": "premium"
+  }
+},
+{
+  "model": "cruises.region",
+  "pk": 1,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.002Z",
+    "updated_at": "2024-11-19T20:53:15.002Z",
+    "is_active": true,
+    "name": "Europe",
+    "description": "European destinations including scenic rivers and historic cities",
+    "parent_region": null,
+    "ports": []
+  }
+},
+{
+  "model": "cruises.region",
+  "pk": 2,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.007Z",
+    "updated_at": "2024-11-19T20:53:15.007Z",
+    "is_active": true,
+    "name": "Benelux",
+    "description": "Belgium, Netherlands, and Luxembourg - heart of European waterways",
+    "parent_region": 1,
+    "ports": []
+  }
+},
+{
+  "model": "cruises.region",
+  "pk": 3,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.011Z",
+    "updated_at": "2024-11-19T20:53:15.011Z",
+    "is_active": true,
+    "name": "Rhine Valley",
+    "description": "The romantic Rhine Valley with its castles and vineyards",
+    "parent_region": 1,
+    "ports": []
+  }
+},
+{
+  "model": "cruises.ship",
+  "pk": 1,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.048Z",
+    "updated_at": "2024-11-19T20:53:15.048Z",
+    "is_active": true,
+    "name": "Swiss Ruby",
+    "company": 1,
+    "brand": 1,
+    "year_built": 2019,
+    "passenger_capacity": 180,
+    "crew_capacity": 45,
+    "gross_tonnage": 2800,
+    "length": "110.00",
+    "speed": "12.5"
+  }
+},
+{
+  "model": "cruises.ship",
+  "pk": 2,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.052Z",
+    "updated_at": "2024-11-19T20:53:15.052Z",
+    "is_active": true,
+    "name": "Viva Gloria",
+    "company": 1,
+    "brand": 1,
+    "year_built": 2020,
+    "passenger_capacity": 190,
+    "crew_capacity": 48,
+    "gross_tonnage": 3000,
+    "length": "115.00",
+    "speed": "13.0"
+  }
+},
+{
+  "model": "cruises.ship",
+  "pk": 3,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.056Z",
+    "updated_at": "2024-11-19T20:53:15.056Z",
+    "is_active": true,
+    "name": "River Dream",
+    "company": 1,
+    "brand": 1,
+    "year_built": 2021,
+    "passenger_capacity": 200,
+    "crew_capacity": 50,
+    "gross_tonnage": 3200,
+    "length": "120.00",
+    "speed": "13.5"
+  }
+},
+{
+  "model": "cruises.ship",
+  "pk": 4,
+  "fields": {
+    "created_at": "2024-11-19T20:57:32.634Z",
+    "updated_at": "2024-11-19T20:57:32.634Z",
+    "is_active": true,
+    "name": "Viva Two",
+    "company": 1,
+    "brand": 1,
+    "year_built": 2021,
+    "passenger_capacity": 200,
+    "crew_capacity": 50,
+    "gross_tonnage": 3200,
+    "length": "120.00",
+    "speed": "13.5"
+  }
+},
+{
+  "model": "cruises.cruisetype",
+  "pk": 1,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.179Z",
+    "updated_at": "2024-11-19T20:53:15.179Z",
+    "is_active": true,
+    "name": "Rivers",
+    "description": "Experience scenic river cruises along Europe's most beautiful waterways",
+    "typical_duration": 7,
+    "requires_visa": false
+  }
+},
+{
+  "model": "cruises.cruisetype",
+  "pk": 2,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.182Z",
+    "updated_at": "2024-11-19T20:53:15.182Z",
+    "is_active": true,
+    "name": "City Breaks",
+    "description": "Short cruises visiting major European cities",
+    "typical_duration": 4,
+    "requires_visa": false
+  }
+},
+{
+  "model": "cruises.cruisetype",
+  "pk": 3,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.186Z",
+    "updated_at": "2024-11-19T20:53:15.186Z",
+    "is_active": true,
+    "name": "Cultural Heritage",
+    "description": "Explore historical sites and cultural landmarks",
+    "typical_duration": 8,
+    "requires_visa": false
+  }
+},
+{
+  "model": "cruises.cruise",
+  "pk": 1,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.190Z",
+    "updated_at": "2024-11-19T20:53:15.190Z",
+    "is_active": true,
+    "name": "Cityhopping from Antwerpen",
+    "slug": "cityhopping-from-antwerpen",
+    "description": "Explore the heart of Europe with stops in major cities",
+    "cruise_type": 2,
+    "ship": 1,
+    "image": "",
+    "image_url": null,
+    "flyer_pdf": "",
+    "is_featured": true,
+    "difficulty_level": 2,
+    "regions": [
+      2
+    ]
+  }
+},
+{
+  "model": "cruises.cruise",
+  "pk": 2,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.237Z",
+    "updated_at": "2024-11-19T20:53:15.237Z",
+    "is_active": true,
+    "name": "Rhine Valley Explorer",
+    "slug": "rhine-valley-explorer",
+    "description": "Journey through the scenic Rhine Valley",
+    "cruise_type": 1,
+    "ship": 2,
+    "image": "",
+    "image_url": null,
+    "flyer_pdf": "",
+    "is_featured": true,
+    "difficulty_level": 1,
+    "regions": [
+      3
+    ]
+  }
+},
+{
+  "model": "cruises.cruisesession",
+  "pk": 6,
+  "fields": {
+    "created_at": "2024-11-19T21:06:44.145Z",
+    "updated_at": "2024-11-19T21:06:44.145Z",
+    "is_active": true,
+    "cruise": 1,
+    "start_date": "2025-02-12",
+    "end_date": "2025-02-16",
+    "embarkation_port": 2,
+    "disembarkation_port": 2,
+    "capacity": 180,
+    "status": "booking",
+    "promotion": null
+  }
+},
+{
+  "model": "cruises.cruisesession",
+  "pk": 7,
+  "fields": {
+    "created_at": "2024-11-19T21:06:44.166Z",
+    "updated_at": "2024-11-19T21:06:44.166Z",
+    "is_active": true,
+    "cruise": 1,
+    "start_date": "2025-02-16",
+    "end_date": "2025-02-20",
+    "embarkation_port": 2,
+    "disembarkation_port": 2,
+    "capacity": 180,
+    "status": "booking",
+    "promotion": null
+  }
+},
+{
+  "model": "cruises.cruisesession",
+  "pk": 8,
+  "fields": {
+    "created_at": "2024-11-19T21:06:44.185Z",
+    "updated_at": "2024-11-19T21:06:44.185Z",
+    "is_active": true,
+    "cruise": 2,
+    "start_date": "2025-04-01",
+    "end_date": "2025-04-07",
+    "embarkation_port": 4,
+    "disembarkation_port": 1,
+    "capacity": 190,
+    "status": "booking",
+    "promotion": null
+  }
+},
+{
+  "model": "cruises.cruisesession",
+  "pk": 9,
+  "fields": {
+    "created_at": "2024-11-19T21:06:44.201Z",
+    "updated_at": "2024-11-19T21:06:44.201Z",
+    "is_active": true,
+    "cruise": 2,
+    "start_date": "2025-05-01",
+    "end_date": "2025-05-07",
+    "embarkation_port": 1,
+    "disembarkation_port": 4,
+    "capacity": 190,
+    "status": "booking",
+    "promotion": null
+  }
+},
+{
+  "model": "cruises.equipment",
+  "pk": 1,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.059Z",
+    "updated_at": "2024-11-19T20:53:15.059Z",
+    "is_active": true,
+    "name": "Single Beds",
+    "description": "Two single beds",
+    "name_de": "Einzelbetten",
+    "name_fr": "Lits simples",
+    "description_de": "Zwei Einzelbetten",
+    "description_fr": "Deux lits simples"
+  }
+},
+{
+  "model": "cruises.equipment",
+  "pk": 2,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.062Z",
+    "updated_at": "2024-11-19T20:53:15.062Z",
+    "is_active": true,
+    "name": "Window",
+    "description": "Two single beds",
+    "name_de": "Einzelbetten",
+    "name_fr": "Lits simples",
+    "description_de": "Zwei Einzelbetten",
+    "description_fr": "Deux lits simples"
+  }
+},
+{
+  "model": "cruises.equipment",
+  "pk": 3,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.066Z",
+    "updated_at": "2024-11-19T20:53:15.066Z",
+    "is_active": true,
+    "name": "French Balcony",
+    "description": "Two single beds",
+    "name_de": "Einzelbetten",
+    "name_fr": "Lits simples",
+    "description_de": "Zwei Einzelbetten",
+    "description_fr": "Deux lits simples"
+  }
+},
+{
+  "model": "cruises.cabincategory",
+  "pk": 1,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.070Z",
+    "updated_at": "2024-11-19T20:53:15.070Z",
+    "is_active": true,
+    "name": "Emerald | 2-Bed Cabin",
+    "ship": 1,
+    "description": "Comfortable 16 m� cabin on the Emerald Deck.",
+    "capacity": 2,
+    "deck": "Emerald",
+    "category_code": "EM2",
+    "square_meters": "16.00",
+    "is_accessible": false,
+    "has_balcony": false
+  }
+},
+{
+  "model": "cruises.cabincategory",
+  "pk": 2,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.082Z",
+    "updated_at": "2024-11-19T20:53:15.082Z",
+    "is_active": true,
+    "name": "Ruby | 2-Bed Cabin",
+    "ship": 1,
+    "description": "Luxurious 16 m� cabin on the Ruby Deck.",
+    "capacity": 2,
+    "deck": "Ruby",
+    "category_code": "RB2",
+    "square_meters": "16.00",
+    "is_accessible": false,
+    "has_balcony": true
+  }
+},
+{
+  "model": "cruises.cabincategory",
+  "pk": 3,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.095Z",
+    "updated_at": "2024-11-19T20:53:15.095Z",
+    "is_active": true,
+    "name": "Diamond | 2-Bed Cabin",
+    "ship": 1,
+    "description": "Premium 18 m� cabin on the Diamond Deck.",
+    "capacity": 2,
+    "deck": "Diamond",
+    "category_code": "DI2",
+    "square_meters": "18.00",
+    "is_accessible": true,
+    "has_balcony": true
+  }
+},
+{
+  "model": "cruises.cabincategory",
+  "pk": 4,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.107Z",
+    "updated_at": "2024-11-19T20:53:15.107Z",
+    "is_active": true,
+    "name": "Emerald | 2-Bed Cabin",
+    "ship": 2,
+    "description": "Comfortable 16 m� cabin on the Emerald Deck.",
+    "capacity": 2,
+    "deck": "Emerald",
+    "category_code": "EM2",
+    "square_meters": "16.00",
+    "is_accessible": false,
+    "has_balcony": false
+  }
+},
+{
+  "model": "cruises.cabincategory",
+  "pk": 5,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.119Z",
+    "updated_at": "2024-11-19T20:53:15.119Z",
+    "is_active": true,
+    "name": "Ruby | 2-Bed Cabin",
+    "ship": 2,
+    "description": "Luxurious 16 m� cabin on the Ruby Deck.",
+    "capacity": 2,
+    "deck": "Ruby",
+    "category_code": "RB2",
+    "square_meters": "16.00",
+    "is_accessible": false,
+    "has_balcony": true
+  }
+},
+{
+  "model": "cruises.cabincategory",
+  "pk": 6,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.131Z",
+    "updated_at": "2024-11-19T20:53:15.131Z",
+    "is_active": true,
+    "name": "Diamond | 2-Bed Cabin",
+    "ship": 2,
+    "description": "Premium 18 m� cabin on the Diamond Deck.",
+    "capacity": 2,
+    "deck": "Diamond",
+    "category_code": "DI2",
+    "square_meters": "18.00",
+    "is_accessible": true,
+    "has_balcony": true
+  }
+},
+{
+  "model": "cruises.cabincategory",
+  "pk": 7,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.143Z",
+    "updated_at": "2024-11-19T20:53:15.143Z",
+    "is_active": true,
+    "name": "Emerald | 2-Bed Cabin",
+    "ship": 3,
+    "description": "Comfortable 16 m� cabin on the Emerald Deck.",
+    "capacity": 2,
+    "deck": "Emerald",
+    "category_code": "EM2",
+    "square_meters": "16.00",
+    "is_accessible": false,
+    "has_balcony": false
+  }
+},
+{
+  "model": "cruises.cabincategory",
+  "pk": 8,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.154Z",
+    "updated_at": "2024-11-19T20:53:15.154Z",
+    "is_active": true,
+    "name": "Ruby | 2-Bed Cabin",
+    "ship": 3,
+    "description": "Luxurious 16 m� cabin on the Ruby Deck.",
+    "capacity": 2,
+    "deck": "Ruby",
+    "category_code": "RB2",
+    "square_meters": "16.00",
+    "is_accessible": false,
+    "has_balcony": true
+  }
+},
+{
+  "model": "cruises.cabincategory",
+  "pk": 9,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.166Z",
+    "updated_at": "2024-11-19T20:53:15.166Z",
+    "is_active": true,
+    "name": "Diamond | 2-Bed Cabin",
+    "ship": 3,
+    "description": "Premium 18 m� cabin on the Diamond Deck.",
+    "capacity": 2,
+    "deck": "Diamond",
+    "category_code": "DI2",
+    "square_meters": "18.00",
+    "is_accessible": true,
+    "has_balcony": true
+  }
+},
+{
+  "model": "cruises.cabincategory",
+  "pk": 10,
+  "fields": {
+    "created_at": "2024-11-19T20:57:32.647Z",
+    "updated_at": "2024-11-19T20:57:32.647Z",
+    "is_active": true,
+    "name": "Emerald | 2-Bed Cabin",
+    "ship": 4,
+    "description": "Comfortable 16 m� cabin on the Emerald Deck.",
+    "capacity": 2,
+    "deck": "Emerald",
+    "category_code": "EM2",
+    "square_meters": "16.00",
+    "is_accessible": false,
+    "has_balcony": false
+  }
+},
+{
+  "model": "cruises.cabincategory",
+  "pk": 11,
+  "fields": {
+    "created_at": "2024-11-19T20:57:32.660Z",
+    "updated_at": "2024-11-19T20:57:32.660Z",
+    "is_active": true,
+    "name": "Ruby | 2-Bed Cabin",
+    "ship": 4,
+    "description": "Luxurious 16 m� cabin on the Ruby Deck.",
+    "capacity": 2,
+    "deck": "Ruby",
+    "category_code": "RB2",
+    "square_meters": "16.00",
+    "is_accessible": false,
+    "has_balcony": true
+  }
+},
+{
+  "model": "cruises.cabincategory",
+  "pk": 12,
+  "fields": {
+    "created_at": "2024-11-19T20:57:32.671Z",
+    "updated_at": "2024-11-19T20:57:32.671Z",
+    "is_active": true,
+    "name": "Diamond | 2-Bed Cabin",
+    "ship": 4,
+    "description": "Premium 18 m� cabin on the Diamond Deck.",
+    "capacity": 2,
+    "deck": "Diamond",
+    "category_code": "DI2",
+    "square_meters": "18.00",
+    "is_accessible": true,
+    "has_balcony": true
+  }
+},
+{
+  "model": "cruises.cabinequipment",
+  "pk": 1,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.075Z",
+    "updated_at": "2024-11-19T20:53:15.075Z",
+    "is_active": true,
+    "cabin_category": 1,
+    "equipment": 1,
+    "quantity": 2
+  }
+},
+{
+  "model": "cruises.cabinequipment",
+  "pk": 2,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.079Z",
+    "updated_at": "2024-11-19T20:53:15.079Z",
+    "is_active": true,
+    "cabin_category": 1,
+    "equipment": 2,
+    "quantity": 1
+  }
+},
+{
+  "model": "cruises.cabinequipment",
+  "pk": 3,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.087Z",
+    "updated_at": "2024-11-19T20:53:15.087Z",
+    "is_active": true,
+    "cabin_category": 2,
+    "equipment": 1,
+    "quantity": 2
+  }
+},
+{
+  "model": "cruises.cabinequipment",
+  "pk": 4,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.090Z",
+    "updated_at": "2024-11-19T20:53:15.090Z",
+    "is_active": true,
+    "cabin_category": 2,
+    "equipment": 3,
+    "quantity": 1
+  }
+},
+{
+  "model": "cruises.cabinequipment",
+  "pk": 5,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.098Z",
+    "updated_at": "2024-11-19T20:53:15.099Z",
+    "is_active": true,
+    "cabin_category": 3,
+    "equipment": 1,
+    "quantity": 2
+  }
+},
+{
+  "model": "cruises.cabinequipment",
+  "pk": 6,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.102Z",
+    "updated_at": "2024-11-19T20:53:15.102Z",
+    "is_active": true,
+    "cabin_category": 3,
+    "equipment": 3,
+    "quantity": 1
+  }
+},
+{
+  "model": "cruises.cabinequipment",
+  "pk": 7,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.111Z",
+    "updated_at": "2024-11-19T20:53:15.111Z",
+    "is_active": true,
+    "cabin_category": 4,
+    "equipment": 1,
+    "quantity": 2
+  }
+},
+{
+  "model": "cruises.cabinequipment",
+  "pk": 8,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.115Z",
+    "updated_at": "2024-11-19T20:53:15.115Z",
+    "is_active": true,
+    "cabin_category": 4,
+    "equipment": 2,
+    "quantity": 1
+  }
+},
+{
+  "model": "cruises.cabinequipment",
+  "pk": 9,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.122Z",
+    "updated_at": "2024-11-19T20:53:15.122Z",
+    "is_active": true,
+    "cabin_category": 5,
+    "equipment": 1,
+    "quantity": 2
+  }
+},
+{
+  "model": "cruises.cabinequipment",
+  "pk": 10,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.127Z",
+    "updated_at": "2024-11-19T20:53:15.127Z",
+    "is_active": true,
+    "cabin_category": 5,
+    "equipment": 3,
+    "quantity": 1
+  }
+},
+{
+  "model": "cruises.cabinequipment",
+  "pk": 11,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.134Z",
+    "updated_at": "2024-11-19T20:53:15.134Z",
+    "is_active": true,
+    "cabin_category": 6,
+    "equipment": 1,
+    "quantity": 2
+  }
+},
+{
+  "model": "cruises.cabinequipment",
+  "pk": 12,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.139Z",
+    "updated_at": "2024-11-19T20:53:15.139Z",
+    "is_active": true,
+    "cabin_category": 6,
+    "equipment": 3,
+    "quantity": 1
+  }
+},
+{
+  "model": "cruises.cabinequipment",
+  "pk": 13,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.147Z",
+    "updated_at": "2024-11-19T20:53:15.147Z",
+    "is_active": true,
+    "cabin_category": 7,
+    "equipment": 1,
+    "quantity": 2
+  }
+},
+{
+  "model": "cruises.cabinequipment",
+  "pk": 14,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.150Z",
+    "updated_at": "2024-11-19T20:53:15.150Z",
+    "is_active": true,
+    "cabin_category": 7,
+    "equipment": 2,
+    "quantity": 1
+  }
+},
+{
+  "model": "cruises.cabinequipment",
+  "pk": 15,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.159Z",
+    "updated_at": "2024-11-19T20:53:15.159Z",
+    "is_active": true,
+    "cabin_category": 8,
+    "equipment": 1,
+    "quantity": 2
+  }
+},
+{
+  "model": "cruises.cabinequipment",
+  "pk": 16,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.163Z",
+    "updated_at": "2024-11-19T20:53:15.163Z",
+    "is_active": true,
+    "cabin_category": 8,
+    "equipment": 3,
+    "quantity": 1
+  }
+},
+{
+  "model": "cruises.cabinequipment",
+  "pk": 17,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.170Z",
+    "updated_at": "2024-11-19T20:53:15.170Z",
+    "is_active": true,
+    "cabin_category": 9,
+    "equipment": 1,
+    "quantity": 2
+  }
+},
+{
+  "model": "cruises.cabinequipment",
+  "pk": 18,
+  "fields": {
+    "created_at": "2024-11-19T20:53:15.175Z",
+    "updated_at": "2024-11-19T20:53:15.175Z",
+    "is_active": true,
+    "cabin_category": 9,
+    "equipment": 3,
+    "quantity": 1
+  }
+},
+{
+  "model": "cruises.cabinequipment",
+  "pk": 19,
+  "fields": {
+    "created_at": "2024-11-19T20:57:32.652Z",
+    "updated_at": "2024-11-19T20:57:32.652Z",
+    "is_active": true,
+    "cabin_category": 10,
+    "equipment": 1,
+    "quantity": 2
+  }
+},
+{
+  "model": "cruises.cabinequipment",
+  "pk": 20,
+  "fields": {
+    "created_at": "2024-11-19T20:57:32.655Z",
+    "updated_at": "2024-11-19T20:57:32.655Z",
+    "is_active": true,
+    "cabin_category": 10,
+    "equipment": 2,
+    "quantity": 1
+  }
+},
+{
+  "model": "cruises.cabinequipment",
+  "pk": 21,
+  "fields": {
+    "created_at": "2024-11-19T20:57:32.663Z",
+    "updated_at": "2024-11-19T20:57:32.663Z",
+    "is_active": true,
+    "cabin_category": 11,
+    "equipment": 1,
+    "quantity": 2
+  }
+},
+{
+  "model": "cruises.cabinequipment",
+  "pk": 22,
+  "fields": {
+    "created_at": "2024-11-19T20:57:32.668Z",
+    "updated_at": "2024-11-19T20:57:32.668Z",
+    "is_active": true,
+    "cabin_category": 11,
+    "equipment": 3,
+    "quantity": 1
+  }
+},
+{
+  "model": "cruises.cabinequipment",
+  "pk": 23,
+  "fields": {
+    "created_at": "2024-11-19T20:57:32.675Z",
+    "updated_at": "2024-11-19T20:57:32.675Z",
+    "is_active": true,
+    "cabin_category": 12,
+    "equipment": 1,
+    "quantity": 2
+  }
+},
+{
+  "model": "cruises.cabinequipment",
+  "pk": 24,
+  "fields": {
+    "created_at": "2024-11-19T20:57:32.678Z",
+    "updated_at": "2024-11-19T20:57:32.678Z",
+    "is_active": true,
+    "cabin_category": 12,
+    "equipment": 3,
+    "quantity": 1
+  }
+},
+{
+  "model": "cruises.cruisesessioncabinprice",
+  "pk": 16,
+  "fields": {
+    "created_at": "2024-11-19T21:06:44.151Z",
+    "updated_at": "2024-11-19T21:06:44.151Z",
+    "is_active": true,
+    "cruise_session": 6,
+    "cabin_category": 1,
+    "price": "799.00",
+    "is_early_bird": true,
+    "early_bird_deadline": "2024-12-31",
+    "regular_price": "918.85",
+    "single_supplement": "50.00",
+    "third_person_discount": "30.00",
+    "available_cabins": 10
+  }
+},
+{
+  "model": "cruises.cruisesessioncabinprice",
+  "pk": 17,
+  "fields": {
+    "created_at": "2024-11-19T21:06:44.156Z",
+    "updated_at": "2024-11-19T21:06:44.156Z",
+    "is_active": true,
+    "cruise_session": 6,
+    "cabin_category": 2,
+    "price": "929.00",
+    "is_early_bird": true,
+    "early_bird_deadline": "2024-12-31",
+    "regular_price": "1068.35",
+    "single_supplement": "50.00",
+    "third_person_discount": "30.00",
+    "available_cabins": 10
+  }
+},
+{
+  "model": "cruises.cruisesessioncabinprice",
+  "pk": 18,
+  "fields": {
+    "created_at": "2024-11-19T21:06:44.160Z",
+    "updated_at": "2024-11-19T21:06:44.160Z",
+    "is_active": true,
+    "cruise_session": 6,
+    "cabin_category": 3,
+    "price": "1099.00",
+    "is_early_bird": true,
+    "early_bird_deadline": "2024-12-31",
+    "regular_price": "1263.85",
+    "single_supplement": "50.00",
+    "third_person_discount": "30.00",
+    "available_cabins": 10
+  }
+},
+{
+  "model": "cruises.cruisesessioncabinprice",
+  "pk": 19,
+  "fields": {
+    "created_at": "2024-11-19T21:06:44.171Z",
+    "updated_at": "2024-11-19T21:06:44.171Z",
+    "is_active": true,
+    "cruise_session": 7,
+    "cabin_category": 1,
+    "price": "799.00",
+    "is_early_bird": true,
+    "early_bird_deadline": "2024-12-31",
+    "regular_price": "918.85",
+    "single_supplement": "50.00",
+    "third_person_discount": "30.00",
+    "available_cabins": 10
+  }
+},
+{
+  "model": "cruises.cruisesessioncabinprice",
+  "pk": 20,
+  "fields": {
+    "created_at": "2024-11-19T21:06:44.175Z",
+    "updated_at": "2024-11-19T21:06:44.175Z",
+    "is_active": true,
+    "cruise_session": 7,
+    "cabin_category": 2,
+    "price": "929.00",
+    "is_early_bird": true,
+    "early_bird_deadline": "2024-12-31",
+    "regular_price": "1068.35",
+    "single_supplement": "50.00",
+    "third_person_discount": "30.00",
+    "available_cabins": 10
+  }
+},
+{
+  "model": "cruises.cruisesessioncabinprice",
+  "pk": 21,
+  "fields": {
+    "created_at": "2024-11-19T21:06:44.179Z",
+    "updated_at": "2024-11-19T21:06:44.179Z",
+    "is_active": true,
+    "cruise_session": 7,
+    "cabin_category": 3,
+    "price": "1099.00",
+    "is_early_bird": true,
+    "early_bird_deadline": "2024-12-31",
+    "regular_price": "1263.85",
+    "single_supplement": "50.00",
+    "third_person_discount": "30.00",
+    "available_cabins": 10
+  }
+},
+{
+  "model": "cruises.cruisesessioncabinprice",
+  "pk": 22,
+  "fields": {
+    "created_at": "2024-11-19T21:06:44.189Z",
+    "updated_at": "2024-11-19T21:06:44.189Z",
+    "is_active": true,
+    "cruise_session": 8,
+    "cabin_category": 4,
+    "price": "878.90",
+    "is_early_bird": true,
+    "early_bird_deadline": "2024-12-31",
+    "regular_price": "1010.74",
+    "single_supplement": "50.00",
+    "third_person_discount": "30.00",
+    "available_cabins": 10
+  }
+},
+{
+  "model": "cruises.cruisesessioncabinprice",
+  "pk": 23,
+  "fields": {
+    "created_at": "2024-11-19T21:06:44.193Z",
+    "updated_at": "2024-11-19T21:06:44.193Z",
+    "is_active": true,
+    "cruise_session": 8,
+    "cabin_category": 5,
+    "price": "1021.90",
+    "is_early_bird": true,
+    "early_bird_deadline": "2024-12-31",
+    "regular_price": "1175.18",
+    "single_supplement": "50.00",
+    "third_person_discount": "30.00",
+    "available_cabins": 10
+  }
+},
+{
+  "model": "cruises.cruisesessioncabinprice",
+  "pk": 24,
+  "fields": {
+    "created_at": "2024-11-19T21:06:44.196Z",
+    "updated_at": "2024-11-19T21:06:44.196Z",
+    "is_active": true,
+    "cruise_session": 8,
+    "cabin_category": 6,
+    "price": "1208.90",
+    "is_early_bird": true,
+    "early_bird_deadline": "2024-12-31",
+    "regular_price": "1390.24",
+    "single_supplement": "50.00",
+    "third_person_discount": "30.00",
+    "available_cabins": 10
+  }
+},
+{
+  "model": "cruises.cruisesessioncabinprice",
+  "pk": 25,
+  "fields": {
+    "created_at": "2024-11-19T21:06:44.205Z",
+    "updated_at": "2024-11-19T21:06:44.205Z",
+    "is_active": true,
+    "cruise_session": 9,
+    "cabin_category": 4,
+    "price": "878.90",
+    "is_early_bird": true,
+    "early_bird_deadline": "2024-12-31",
+    "regular_price": "1010.74",
+    "single_supplement": "50.00",
+    "third_person_discount": "30.00",
+    "available_cabins": 10
+  }
+},
+{
+  "model": "cruises.cruisesessioncabinprice",
+  "pk": 26,
+  "fields": {
+    "created_at": "2024-11-19T21:06:44.209Z",
+    "updated_at": "2024-11-19T21:06:44.209Z",
+    "is_active": true,
+    "cruise_session": 9,
+    "cabin_category": 5,
+    "price": "1021.90",
+    "is_early_bird": true,
+    "early_bird_deadline": "2024-12-31",
+    "regular_price": "1175.18",
+    "single_supplement": "50.00",
+    "third_person_discount": "30.00",
+    "available_cabins": 10
+  }
+},
+{
+  "model": "cruises.cruisesessioncabinprice",
+  "pk": 27,
+  "fields": {
+    "created_at": "2024-11-19T21:06:44.215Z",
+    "updated_at": "2024-11-19T21:06:44.215Z",
+    "is_active": true,
+    "cruise_session": 9,
+    "cabin_category": 6,
+    "price": "1208.90",
+    "is_early_bird": true,
+    "early_bird_deadline": "2024-12-31",
+    "regular_price": "1390.24",
+    "single_supplement": "50.00",
+    "third_person_discount": "30.00",
+    "available_cabins": 10
+  }
+}
+]

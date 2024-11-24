@@ -1,0 +1,16 @@
+[
+    {
+        "model": "cruises.brand",
+        "pk": 1,
+        "fields": {
+            "name": "Fluss.lu",
+            "description": "Discover the beauty of river cruising with Fluss.lu",
+            "website": "https://www.fluss.lu/",
+            "featured": true,
+            "parent_company": 1,
+            "market_segment": "premium",
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    }
+]

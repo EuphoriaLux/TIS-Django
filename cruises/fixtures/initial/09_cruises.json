@@ -1,0 +1,17 @@
+[
+    {
+        "model": "cruises.cruise",
+        "pk": 1,
+        "fields": {
+            "name": "Cityhopping from Antwerpen",
+            "description": "Explore the heart of Europe with stops in major cities",
+            "cruise_type": 1,
+            "ship": 1,
+            "difficulty_level": 2,
+            "is_featured": true,
+            "regions": [2],
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    }
+]

@@ -229,6 +229,10 @@ class Cruise(BaseModel):
         min_price = min(price.get_current_price() for price in prices)
         max_price = max(price.get_current_price() for price in prices)
         return min_price, max_price
+    
+
+    def __str__(self):
+        return f"{self.name} ({self.ship})" 
 
     def get_cabin_availability(self, session=None):
         """Get cabin availability for specific or all sessions"""

@@ -1,0 +1,17 @@
+[
+    {
+        "model": "cruises.cruisesession",
+        "pk": 1,
+        "fields": {
+            "cruise": 1,
+            "start_date": "2025-02-12",
+            "end_date": "2025-02-16",
+            "embarkation_port": 7,
+            "disembarkation_port": 7,
+            "capacity": 180,
+            "status": "booking",
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    }
+]

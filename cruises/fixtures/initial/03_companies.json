@@ -1,0 +1,14 @@
+[
+    {
+        "model": "cruises.cruisecompany",
+        "pk": 1,
+        "fields": {
+            "name": "Viva Cruises",
+            "description": "Premium river cruise experiences across Europe",
+            "website": "https://www.viva-cruises.com/",
+            "operating_regions": [1, 2],
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    }
+]

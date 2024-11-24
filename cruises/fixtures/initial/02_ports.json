@@ -1,0 +1,28 @@
+[
+    {
+        "model": "cruises.port",
+        "pk": 1,
+        "fields": {
+            "name": "Amsterdam",
+            "country": "Netherlands",
+            "port_code": "AMS",
+            "is_embarkation_port": true,
+            "is_disembarkation_port": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "cruises.port",
+        "pk": 2,
+        "fields": {
+            "name": "Antwerpen",
+            "country": "Belgium",
+            "port_code": "BEANR",
+            "is_embarkation_port": true,
+            "is_disembarkation_port": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    }
+]
