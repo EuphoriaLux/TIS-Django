@@ -7,6 +7,37 @@
             "description": "Explore the heart of Europe with stops in major cities",
             "cruise_type": 1,
             "ship": 1,
+            "image": "cruise_images/cover.jpg",
+            "difficulty_level": 2,
+            "is_featured": true,
+            "regions": [2],
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "cruises.cruise",
+        "pk": 2,
+        "fields": {
+            "name": "Donau Delta",
+            "description": "Explore the heart of Europe with stops in major cities",
+            "cruise_type": 1,
+            "ship": 2,
+            "difficulty_level": 2,
+            "is_featured": true,
+            "regions": [3],
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "cruises.cruise",
+        "pk": 3,
+        "fields": {
+            "name": "Citys op Netherlands",
+            "description": "Explore the heart of Europe with stops in major cities",
+            "cruise_type": 1,
+            "ship": 3,
             "difficulty_level": 2,
             "is_featured": true,
             "regions": [2],

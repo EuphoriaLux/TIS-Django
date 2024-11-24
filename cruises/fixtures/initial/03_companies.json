@@ -10,5 +10,17 @@
             "created_at": "2024-01-01T00:00:00Z",
             "updated_at": "2024-01-01T00:00:00Z"
         }
+    },
+    {
+        "model": "cruises.cruisecompany",
+        "pk": 2,
+        "fields": {
+            "name": "Travel in Style",
+            "description": "Premium  cruise experiences across Europe",
+            "website": "https://www.travelinstyle.lu",
+            "operating_regions": [1, 2],
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
     }
 ]

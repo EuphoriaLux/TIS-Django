@@ -6,8 +6,39 @@
             "name": "Fluss.lu",
             "description": "Discover the beauty of river cruising with Fluss.lu",
             "website": "https://www.fluss.lu/",
+            "logo": "brand_logos/fluss_lu.png",
             "featured": true,
-            "parent_company": 1,
+            "parent_company": 2,
+            "market_segment": "premium",
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "cruises.brand",
+        "pk": 2,
+        "fields": {
+            "name": "Cruise Selection - Belgium",
+            "description": "Discover the beauty of river cruising with Cruise Selection",
+            "website": "https://cruiseselection.be/",
+            "logo": "brand_logos/cruise_selection.png",
+            "featured": true,
+            "parent_company": 2,
+            "market_segment": "premium",
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "cruises.brand",
+        "pk": 3,
+        "fields": {
+            "name": "In Malta - Luxembourg",
+            "description": "Discover the beauty of Malta with Travel in Style",
+            "website": "https://inmalta.eu/",
+            "logo": "brand_logos/in_malta.png",
+            "featured": true,
+            "parent_company": 2,
             "market_segment": "premium",
             "created_at": "2024-01-01T00:00:00Z",
             "updated_at": "2024-01-01T00:00:00Z"

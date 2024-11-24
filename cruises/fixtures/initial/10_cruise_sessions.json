@@ -1,17 +1,32 @@
 [
     {
-        "model": "cruises.cruisesession",
-        "pk": 1,
+        "model": "cruises.cruisesessioncabinprice",
         "fields": {
-            "cruise": 1,
-            "start_date": "2025-02-12",
-            "end_date": "2025-02-16",
-            "embarkation_port": 7,
-            "disembarkation_port": 7,
-            "capacity": 180,
-            "status": "booking",
-            "created_at": "2024-01-01T00:00:00Z",
-            "updated_at": "2024-01-01T00:00:00Z"
+            "cruise_session": 1,
+            "cabin_category": 1,
+            "price": "1999.00",
+            "is_early_bird": true,
+            "early_bird_deadline": "2024-12-31",
+            "regular_price": "2499.00",
+            "single_supplement": "50.00",
+            "third_person_discount": "30.00",
+            "available_cabins": 10,
+            "is_active": true
+        }
+    },
+    {
+        "model": "cruises.cruisesessioncabinprice",
+        "fields": {
+            "cruise_session": 1,
+            "cabin_category": 2,
+            "price": "2499.00",
+            "is_early_bird": true,
+            "early_bird_deadline": "2024-12-31",
+            "regular_price": "2999.00",
+            "single_supplement": "50.00",
+            "third_person_discount": "30.00",
+            "available_cabins": 8,
+            "is_active": true
         }
     }
 ]

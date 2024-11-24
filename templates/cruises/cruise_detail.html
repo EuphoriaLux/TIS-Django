@@ -15,404 +15,216 @@ Here's the complete updated cruise_detail.html file:
 {% endblock %}
 
 {% block content %}
-<!-- Breadcrumbs -->
-<div class="page-nav" style="background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('{{ cruise.get_image_url }}'); background-size: cover; background-position: center;">
+
+
+
+<!-- Hero Section -->
+<div class="page-nav" style="background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('{{ cruise.get_image_url }}');">
     <div class="container">
-        <h2 class="text-white">{{ cruise.name }}</h2>
-        <ul class="text-white">
-            <li><a href="{% url 'home' %}" class="text-white"><i class="fas fa-home"></i> {% trans "Home" %}</a></li>
-            <li><i class="fas fa-angle-double-right"></i></li>
-            <li><a href="{% url 'cruises:cruise_list' %}" class="text-white">{% trans "Cruises" %}</a></li>
-            <li><i class="fas fa-angle-double-right"></i></li>
-            <li>{{ cruise.name }}</li>
-        </ul>
-        <!-- Add cruise type and company name -->
-        <p class="lead text-white mt-3">
-            {{ cruise.cruise_type.name }} Cruise by {{ cruise.company.name }}
-        </p>
+        <h1 class="text-white">{{ cruise.name }}</h1>
+        <div class="cruise-meta text-white">
+            <span><i class="fas fa-ship"></i> {{ cruise.ship.name }}</span>
+            <span><i class="fas fa-building"></i> {{ cruise.ship.company.name }}</span>
+            {% if cruise.ship.brand %}
+                <span><i class="fas fa-tag"></i> {{ cruise.ship.brand.name }}</span>
+            {% endif %}
+        </div>
     </div>
 </div>
 
 <div class="container mt-5">
     <div class="row">
         <!-- Main Content -->
-        <div class="col-md-8">
-            <h2>About This Cruise</h2>
-            
-            {% if has_summer_special %}
-            <div class="summer-special-banner">
-                <div class="container">
-                    <h2>{% trans "Summer Special Offer!" %}</h2>
-                    <p>{% trans "SUMMER SPECIAL: On selected dates, enjoy a free cabin upgrade or a reduced single cabin supplement of only 20%!" %}</p>
-                </div>
-            </div>
-            {% endif %}
-
-            <div class="cruise-description">
-                {{ cruise.description|linebreaks|safe }}
-            </div>
-            
-            <!-- Key Features -->
-            <div class="feature-icons mt-5">
-                <h3 class="mb-4">Key Features</h3>
-                <div class="row">
-                    <div class="col-md-4 text-center">
-                        <i class="fas fa-ship"></i>
-                        <h5>{{ cruise.cruise_type.name }}</h5>
-                    </div>
-                    <div class="col-md-4 text-center">
-                        <i class="fas fa-users"></i>
-                        <h5>{{ cruise.sessions.first.capacity }} Passengers</h5>
-                    </div>
-                    <div class="col-md-4 text-center">
-                        <i class="fas fa-map-marked-alt"></i>
-                        <h5>Multiple Destinations</h5>
+        <div class="col-lg-8">
+            <!-- Cruise Overview -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h2>About This Cruise</h2>
+                    {{ cruise.description|linebreaks }}
+                    
+                    <!-- Key Features -->
+                    <div class="features-grid mt-4">
+                        <div class="feature">
+                            <i class="fas fa-route"></i>
+                            <h5>{{ cruise.cruise_type.name }}</h5>
+                            <p>{{ cruise.duration_range }}</p>
+                        </div>
+                        <div class="feature">
+                            <i class="fas fa-ship"></i>
+                            <h5>{{ cruise.ship.name }}</h5>
+                            <p>{{ cruise.ship.passenger_capacity }} Passengers</p>
+                        </div>
+                        <div class="feature">
+                            <i class="fas fa-map-marked-alt"></i>
+                            <h5>Regions</h5>
+                            <p>{% for region in cruise.regions.all %}{{ region.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+                        </div>
                     </div>
                 </div>
             </div>
-
             <!-- Itinerary -->
-            <div class="itinerary-section">
-                <h3 class="mb-4">Cruise Itinerary</h3>
-                <div class="timeline">
-                    {% for day in itinerary %}
-                    <div class="timeline-item">
-                        <h4>Day {{ day.day }}: {{ day.port }}</h4>
-                        <p>{{ day.description }}</p>
-                        {% if day.arrival_time %}
-                        <p><i class="fas fa-arrow-down text-success"></i> <strong>Arrival:</strong> {{ day.arrival_time|time:"H:i" }}</p>
-                        {% endif %}
-                        {% if day.departure_time %}
-                        <p><i class="fas fa-arrow-up text-danger"></i> <strong>Departure:</strong> {{ day.departure_time|time:"H:i" }}</p>
-                        {% endif %}
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <!-- Amenities -->
-            <div class="amenities-section">
-                <h3 class="mb-4">Onboard Amenities</h3>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="amenity-item">
-                            <i class="fas fa-utensils"></i>
-                            <span>Gourmet Restaurants</span>
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h3>Cruise Itinerary</h3>
+                    <div class="timeline">
+                        {% for day in itinerary %}
+                        <div class="timeline-item">
+                            <div class="timeline-marker {% if day.is_sea_day %}sea-day{% endif %}">
+                                <span>Day {{ day.day }}</span>
+                            </div>
+                            <div class="timeline-content">
+                                <h4>{% if day.is_sea_day %}Day at Sea{% else %}{{ day.port.name }}{% endif %}</h4>
+                                <p>{{ day.description }}</p>
+                                {% if not day.is_sea_day %}
+                                    {% if day.arrival_time %}
+                                    <div class="time-info arrival">
+                                        <i class="fas fa-anchor"></i> Arrival: {{ day.arrival_time|time:"H:i" }}
+                                    </div>
+                                    {% endif %}
+                                    {% if day.departure_time %}
+                                    <div class="time-info departure">
+                                        <i class="fas fa-ship"></i> Departure: {{ day.departure_time|time:"H:i" }}
+                                    </div>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
                         </div>
-                        <div class="amenity-item">
-                            <i class="fas fa-swimming-pool"></i>
-                            <span>Swimming Pools</span>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="amenity-item">
-                            <i class="fas fa-spa"></i>
-                            <span>Spa and Wellness Center</span>
-                        </div>
-                        <div class="amenity-item">
-                            <i class="fas fa-theater-masks"></i>
-                            <span>Theater Shows</span>
-                        </div>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Sidebar -->
-        <div class="col-md-4">
-            <div class="quick-info-card">
-                <h3>Quick Info</h3>
-                <ul>
-                    <li>
-                        <i class="far fa-calendar-alt"></i> Duration: 
-                        {% with session=cruise.sessions.first %}
-                            {{ session.start_date|date:"M d" }} - {{ session.end_date|date:"M d, Y" }}
-                            <small class="text-muted d-block mt-1">
-                                ({{ session.start_date|timesince:session.end_date }})
-                            </small>
-                        {% endwith %}
-                    </li>
-                    <li><i class="fas fa-ship"></i> Ship: {{ cruise.company.name }}</li>
-                    <li><i class="fas fa-phone"></i> Contact: +1 (800) 123-4567</li>
-                    <li><i class="fas fa-envelope"></i> Email: info@travelinstyle.com</li>
-                    {% if cruise.flyer_pdf %}
-                    <li>
-                        <i class="fas fa-file-pdf"></i> 
-                        <a href="{{ cruise.flyer_pdf.url }}" target="_blank" class="btn btn-outline-primary btn-block">
-                            <i class="fas fa-download mr-2"></i> Download Cruise Flyer
-                        </a>
-                    </li>
+        <div class="col-lg-4">
+            <!-- Quick Info Card -->
+            <div class="card sticky-top mb-4" style="top: 20px;">
+                <div class="card-body">
+                    <h3>
+                        {% if min_price %}
+                        From €{{ min_price|floatformat:2 }}
+                        {% else %}
+                        Price on request
+                        {% endif %}
+                    </h3>
+                    
+                    {% if current_promotions %}
+                    <div class="promotions-section mb-3">
+                        {% for promotion in current_promotions %}
+                        <div class="promotion-badge">
+                            <i class="fas fa-tag"></i> {{ promotion.name }}
+                            {% if promotion.discount_type == 'percentage' %}
+                            Save {{ promotion.discount_value }}%
+                            {% elif promotion.discount_type == 'fixed' %}
+                            Save €{{ promotion.discount_value }}
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
                     {% endif %}
-                </ul>
 
-                <!-- Price Range -->
-                <div class="price-range mt-4">
-                    <h4>Price Range</h4>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="h3 text-primary mb-0">€{{ cruise.get_min_price|floatformat:2 }}</span>
-                        <span class="text-muted">Starting from</span>
+                    <div class="cruise-quick-info">
+                        <div class="info-item">
+                            <i class="fas fa-calendar"></i>
+                            <span>Duration: {{ cruise.duration_range }}</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-ship"></i>
+                            <span>Ship: {{ cruise.ship.name }}</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-users"></i>
+                            <span>Capacity: {{ cruise.ship.passenger_capacity }} passengers</span>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Quick Actions -->
-                <div class="quick-actions mt-4">
-                    <button class="btn btn-primary btn-lg btn-block mb-2" onclick="document.getElementById('booking-section').scrollIntoView({behavior: 'smooth'})">
-                        Book Now
-                    </button>
-                    <button class="btn btn-outline-secondary btn-block" onclick="window.print()">
-                        <i class="fas fa-print mr-2"></i> Print Itinerary
+                    <button class="btn btn-primary btn-lg btn-block mt-3" onclick="document.getElementById('booking-section').scrollIntoView({behavior: 'smooth'})">
+                        View Available Dates
                     </button>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Booking Section -->
-<div id="booking-section" class="booking-process container mt-5 mb-5">
-    <h2 class="text-center mb-4">Book Your Cruise</h2>
-    <div class="booking-steps">
-        <div class="step active" id="step1">
-            <span class="step-number">1</span>
-            <span class="step-text">Select Date</span>
-        </div>
-        <div class="step" id="step2">
-            <span class="step-number">2</span>
-            <span class="step-text">Choose Cabin</span>
-        </div>
-    </div>
-
-    <div class="booking-content">
-        <!-- Date Selection -->
-        <div class="step-content active" id="step1-content">
-            <h3>{% trans "Available Cruise Dates" %}</h3>
-            <div class="available-dates mt-3">
-                <ul class="date-list">
-                    {% for session in cruise.sessions.all %}
-                    <li data-session-id="{{ session.id }}" class="p-3 mb-2 rounded">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <span class="date">{{ session.start_date|date:"M d, Y" }} - {{ session.end_date|date:"M d, Y" }}</span>
-                                <span class="capacity d-block text-muted">{% trans "Available" %}: {{ session.capacity }}</span>
-                                {% if session.is_summer_special %}
-                                <span class="summer-special">{{ session.get_summer_special_message }}</span>
-                                {% endif %}
-                            </div>
-                            <button class="btn btn-primary select-date-btn">{% trans "Select" %}</button>
+    <!-- Booking Section -->
+    <div id="booking-section" class="mt-5">
+        <h2>Available Departures</h2>
+        
+        {% if active_sessions %}
+        <div class="sessions-grid">
+            {% for session in active_sessions %}
+            <div class="session-card" data-session-id="{{ session.id }}">
+                <div class="session-header">
+                    <div class="dates">
+                        <h4>{{ session.start_date|date:"M d" }} - {{ session.end_date|date:"M d, Y" }}</h4>
+                        <span class="duration">{{ session.duration }} days</span>
+                    </div>
+                    <div class="ports">
+                        <div class="embarkation">
+                            <small>From</small>
+                            <span>{{ session.embarkation_port.name }}</span>
                         </div>
-                    </li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
-
-        <!-- Cabin Selection -->
-        <div class="step-content" id="step2-content">
-            <h3>Select Your Cabin Type</h3>
-            <div class="cabin-selection">
-                <div class="row">
-                    {% for session_price in session_prices %}
-                    <div class="col-lg-6 mb-4 cabin-card" data-cabin-price-id="{{ session_price.id }}" data-session-id="{{ session_price.cruise_session.id }}" style="display: none;">
-                        <div class="card h-100">
-                            <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                                <h5 class="card-title mb-0">{{ session_price.cabin_category.name }}</h5>
-                                <div class="price-tag">
-                                    <span class="h4 text-primary mb-0">€{{ session_price.price|floatformat:2 }}</span>
-                                    {% if session_price.is_early_bird %}
-                                    <div class="early-bird-badge">
-                                        <small class="text-success">
-                                            <i class="fas fa-clock"></i> Early Bird until {{ session_price.early_bird_deadline|date }}
-                                        </small>
-                                    </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                <!-- Cabin Features -->
-                                <div class="cabin-features mb-3">
-                                    <div class="row">
-                                        <div class="col-6">
-                                            <small class="text-muted d-block">
-                                                <i class="fas fa-bed"></i> Capacity: {{ session_price.cabin_category.capacity }} persons
-                                            </small>
-                                        </div>
-                                        <div class="col-6">
-                                            <small class="text-muted d-block">
-                                                <i class="fas fa-ruler-combined"></i> Size: {{ session_price.cabin_category.square_meters }}m²
-                                            </small>
-                                        </div>
-                                        <div class="col-6">
-                                            <small class="text-muted d-block">
-                                                <i class="fas fa-layer-group"></i> Deck: {{ session_price.cabin_category.deck }}
-                                            </small>
-                                        </div>
-                                        <div class="col-6">
-                                            <small class="text-muted d-block">
-                                                {% if session_price.cabin_category.has_balcony %}
-                                                <i class="fas fa-check-circle text-success"></i> With Balcony
-                                                {% else %}
-                                                <i class="fas fa-times-circle text-muted"></i> No Balcony
-                                                {% endif %}
-                                            </small>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Cabin Description -->
-                                <p class="cabin-description">{{ session_price.cabin_category.description }}</p>
-
-                                <!-- Equipment List -->
-                                <h6 class="mt-3 mb-2">Amenities</h6>
-                                <div class="equipment-list row">
-                                    {% for equipment in session_price.cabin_category.equipment.all %}
-                                    <div class="col-6">
-                                        <small class="d-block">
-                                            <i class="fas fa-check text-success"></i> {{ equipment.name }}
-                                        </small>
-                                    </div>
-                                    {% endfor %}
-                                </div>
-
-                                <!-- Price Details -->
-                                <div class="price-details mt-3">
-                                    <small class="text-muted d-block">
-                                        <i class="fas fa-user"></i> Single supplement: +{{ session_price.single_supplement }}%
-                                    </small>
-                                    <small class="text-muted d-block">
-                                        <i class="fas fa-users"></i> Third person discount: -{{ session_price.third_person_discount }}%
-                                    </small>
-                                    {% if session_price.available_cabins <= 5 %}
-                                    <div class="availability-warning mt-2">
-                                        <small class="text-danger">
-                                            <i class="fas fa-exclamation-triangle"></i> Only {{ session_price.available_cabins }} cabins left!
-                                        </small>
-                                    </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            <div class="card-footer bg-white border-top-0">
-                                <button class="btn btn-primary btn-block select-cabin-btn">
-                                    Select This Cabin
-                                </button>
-                            </div>
+                        <div class="disembarkation">
+                            <small>To</small>
+                            <span>{{ session.disembarkation_port.name }}</span>
                         </div>
                     </div>
-                    {% empty %}
-                    <div class="col-12">
-                        <div class="alert alert-info">
-                            No cabins available for this date. Please select a different date.
+                </div>
+
+                <div class="cabin-options">
+                    {% for price in session_prices %}
+                    {% if price.cruise_session_id == session.id %}
+                    <div class="cabin-option">
+                        <div class="cabin-details">
+                            <h5>{{ price.cabin_category.name }}</h5>
+                            <span class="deck">Deck: {{ price.cabin_category.deck }}</span>
+                            <span class="capacity">Capacity: {{ price.cabin_category.capacity }} persons</span>
+                            {% if price.cabin_category.has_balcony %}
+                            <span class="feature"><i class="fas fa-check"></i> With Balcony</span>
+                            {% endif %}
+                        </div>
+                        <div class="price-section">
+                            {% if price.is_early_bird %}
+                            <div class="early-bird-tag">
+                                Early Bird until {{ price.early_bird_deadline|date }}
+                            </div>
+                            {% endif %}
+                            <div class="price">
+                                €{{ price.get_current_price|floatformat:2 }}
+                            </div>
+                            <button class="btn btn-primary select-cabin" 
+                                    data-session-id="{{ session.id }}" 
+                                    data-cabin-price-id="{{ price.id }}">
+                                Select
+                            </button>
                         </div>
                     </div>
+                    {% endif %}
                     {% endfor %}
                 </div>
             </div>
-
-            <!-- Navigation Buttons -->
-            <div class="navigation-buttons mt-4">
-                <div class="row">
-                    <div class="col-6">
-                        <button class="btn btn-outline-primary btn-block" id="backToDate">
-                            <i class="fas fa-arrow-left"></i> Back to Date Selection
-                        </button>
-                    </div>
-                    <div class="col-6">
-                        <button class="btn btn-primary btn-block" id="proceedToBooking">
-                            Proceed to Booking <i class="fas fa-arrow-right"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
+            {% endfor %}
         </div>
+        {% else %}
+        <div class="alert alert-info">
+            No departures available at the moment. Please check back later or contact us for more information.
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.js"></script>
 <script>
-    var cruiseId = {{ cruise.id }};
-    var bookCruiseUrl = "{% url 'quote:quote_cruise' cruise.id %}";
-
-    document.addEventListener('DOMContentLoaded', function() {
-        let selectedSessionId = null;
-        let selectedCabinPriceId = null;
-
-        // Initialize slick carousel
-        $('.image-slider').slick({
-            dots: true,
-            infinite: true,
-            speed: 500,
-            fade: true,
-            cssEase: 'linear',
-            autoplay: true,
-            autoplaySpeed: 3000
-        });
-
-        // Date selection
-        const dateList = document.querySelector('.date-list');
-        dateList.addEventListener('click', function(e) {
-            if (e.target.classList.contains('select-date-btn')) {
-                const listItem = e.target.closest('li');
-                selectedSessionId = listItem.dataset.sessionId;
-                
-                // Update UI
-                document.querySelectorAll('.date-list li').forEach(li => {
-                    li.classList.remove('bg-light', 'border-primary');
-                });
-                listItem.classList.add('bg-light', 'border-primary');
-
-                // Filter cabin types
-                document.querySelectorAll('.cabin-card').forEach(card => {
-                    if (card.dataset.sessionId === selectedSessionId) {
-                        card.style.display = 'block';
-                    } else {
-                        card.style.display = 'none';
-                    }
-                });
-
-                // Move to next step
-                document.getElementById('step1').classList.remove('active');
-                document.getElementById('step2').classList.add('active');
-                document.getElementById('step1-content').classList.remove('active');
-                document.getElementById('step2-content').classList.add('active');
-            }
-        });
-
-        // Cabin selection
-        const cabinSelection = document.querySelector('.cabin-selection');
-        cabinSelection.addEventListener('click', function(e) {
-            if (e.target.classList.contains('select-cabin-btn')) {
-                const cabinCard = e.target.closest('.cabin-card');
-                selectedCabinPriceId = cabinCard.dataset.cabinPriceId;
-                
-                // Update UI
-                document.querySelectorAll('.cabin-card').forEach(card => {
-                    card.classList.remove('selected');
-                    card.querySelector('.select-cabin-btn').textContent = 'Select';
-                    card.querySelector('.select-cabin-btn').classList.replace('btn-success', 'btn-primary');
-                });
-                
-                cabinCard.classList.add('selected');
-                e.target.textContent = 'Selected';
-                e.target.classList.replace('btn-primary', 'btn-success');
-            }
-        });
-
-        // Navigation buttons
-        document.getElementById('backToDate').addEventListener('click', function() {
-            document.getElementById('step2').classList.remove('active');
-            document.getElementById('step1').classList.add('active');
-            document.getElementById('step2-content').classList.remove('active');
-            document.getElementById('step1-content').classList.add('active');
-        });
-
-        document.getElementById('proceedToBooking').addEventListener('click', function() {
-            if (selectedSessionId && selectedCabinPriceId) {
-                window.location.href = `${bookCruiseUrl}?session=${selectedSessionId}&cabin_price=${selectedCabinPriceId}`;
-            } else {
-                alert('Please select both a date and a cabin type before proceeding.');
-            }
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle cabin selection
+    document.querySelectorAll('.select-cabin').forEach(button => {
+        button.addEventListener('click', function() {
+            const sessionId = this.dataset.sessionId;
+            const cabinPriceId = this.dataset.cabinPriceId;
+            window.location.href = `{% url 'quote:quote_cruise' cruise.id %}?session=${sessionId}&cabin_price=${cabinPriceId}`;
         });
     });
+});
 </script>
 {% endblock %}

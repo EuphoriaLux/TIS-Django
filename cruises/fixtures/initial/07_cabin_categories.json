@@ -15,5 +15,22 @@
             "created_at": "2024-01-01T00:00:00Z",
             "updated_at": "2024-01-01T00:00:00Z"
         }
+    },
+    {
+        "model": "cruises.cabincategory",
+        "pk": 2,
+        "fields": {
+            "name": "Rubin | 2-Bed Cabin",
+            "description": "Comfortable 16 m² cabin on the Emerald Deck.",
+            "ship": 1,
+            "capacity": 2,
+            "deck": "Rubin",
+            "category_code": "RU2",
+            "square_meters": "16.00",
+            "is_accessible": false,
+            "has_balcony": false,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
     }
 ]

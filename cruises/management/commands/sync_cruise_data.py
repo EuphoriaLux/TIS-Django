@@ -3,11 +3,12 @@
 from django.core.management.base import BaseCommand
 from django.core import serializers
 from django.apps import apps
-from django.db import transaction
+from django.db import transaction, models
 import json
 import os
 from pathlib import Path
 from django.utils import timezone
+from decimal import Decimal
 
 class Command(BaseCommand):
     help = 'Load cruise fixtures with update capability'
@@ -31,14 +32,49 @@ class Command(BaseCommand):
             'cabincategory': ['ship', 'category_code'],
             'cruisetype': ['name'],
             'cruise': ['name', 'ship'],
-            'cruisesession': ['cruise', 'start_date', 'end_date']
+            'cruisesession': ['cruise', 'start_date', 'end_date'],
+            'cruisesessioncabinprice': ['cruise_session', 'cabin_category']
         }
         return identifiers.get(model_name.lower(), ['id'])
+
+    def process_decimal_field(self, value):
+        """Convert string decimal values to Decimal objects"""
+        if isinstance(value, str) and any(c.isdigit() for c in value):
+            return Decimal(value.replace(',', '.'))
+        return value
+
+    def handle_relations(self, Model, fields):
+        """Process related fields and return cleaned data"""
+        cleaned_data = {}
+        m2m_fields = {}
+
+        for field_name, value in fields.items():
+            field = Model._meta.get_field(field_name)
+            
+            if field.many_to_many:
+                m2m_fields[field_name] = value
+                continue
+                
+            if field.is_relation:
+                if isinstance(value, int):
+                    related_model = field.related_model
+                    try:
+                        cleaned_data[field_name] = related_model.objects.get(pk=value)
+                    except related_model.DoesNotExist:
+                        raise Exception(f"Related {field_name} with pk={value} does not exist")
+                continue
+                
+            if isinstance(field, models.DecimalField):
+                cleaned_data[field_name] = self.process_decimal_field(value)
+                continue
+                
+            cleaned_data[field_name] = value
+            
+        return cleaned_data, m2m_fields
 
     def handle(self, *args, **options):
         fixtures_dir = Path('cruises/fixtures/initial')
         
-        # Processing order to respect foreign key relationships
         fixture_order = [
             '01_regions.json',
             '02_ports.json',
@@ -49,7 +85,8 @@ class Command(BaseCommand):
             '07_cabin_categories.json',
             '08_cruise_types.json',
             '09_cruises.json',
-            '10_cruise_sessions.json'
+            '10_cruise_sessions.json',
+            '11_session_cabin_prices.json'
         ]
 
         stats = {
@@ -78,93 +115,60 @@ class Command(BaseCommand):
                     with transaction.atomic():
                         model_name = item['model'].split('.')[-1]
                         Model = apps.get_model('cruises', model_name)
-                        
-                        # Get identifier fields for this model
-                        identifier_fields = self.get_identifier_fields(model_name)
-                        identifier_data = {
-                            field: item['fields'].get(field) 
-                            for field in identifier_fields 
-                            if field in item['fields']
-                        }
 
-                        # Handle foreign key fields in identifier
-                        for field in identifier_fields:
-                            if field in item['fields'] and isinstance(item['fields'][field], int):
-                                related_field = Model._meta.get_field(field)
-                                if related_field.is_relation:
-                                    identifier_data[field] = related_field.related_model.objects.get(
-                                        pk=item['fields'][field]
-                                    )
+                        # Process fields and extract M2M relationships
+                        cleaned_data, m2m_fields = self.handle_relations(Model, item['fields'])
 
-                        # Try to find existing record
-                        existing = Model.objects.filter(**identifier_data).first()
+                        # Try to get existing instance by PK or natural key
+                        instance = None
+                        if 'pk' in item:
+                            try:
+                                instance = Model.objects.get(pk=item['pk'])
+                            except Model.DoesNotExist:
+                                pass
 
-                        if existing and not options['dry_run']:
+                        if not instance:
+                            identifier_fields = self.get_identifier_fields(model_name)
+                            identifier_data = {
+                                field: cleaned_data.get(field)
+                                for field in identifier_fields
+                                if field in cleaned_data
+                            }
+                            instance = Model.objects.filter(**identifier_data).first()
+
+                        if instance and not options['dry_run']:
                             # Update existing record
-                            for field, value in item['fields'].items():
+                            for field, value in cleaned_data.items():
                                 if field not in ['created_at', 'updated_at']:
-                                    field_instance = Model._meta.get_field(field)
-                                    
-                                    if field_instance.is_relation:
-                                        if field_instance.many_to_many:
-                                            # Handle M2M relationships after save
-                                            continue
-                                        elif field_instance.many_to_one:
-                                            # Handle foreign key
-                                            related_model = field_instance.related_model
-                                            value = related_model.objects.get(pk=value)
-                                    
-                                    setattr(existing, field, value)
+                                    setattr(instance, field, value)
                             
-                            existing.updated_at = timezone.now()
-                            existing.save()
-
+                            instance.save()
+                            
                             # Handle M2M relationships
-                            for field, value in item['fields'].items():
-                                field_instance = Model._meta.get_field(field)
-                                if field_instance.many_to_many:
-                                    m2m_field = getattr(existing, field)
-                                    m2m_field.set(value)
+                            for field_name, values in m2m_fields.items():
+                                m2m_field = getattr(instance, field_name)
+                                m2m_field.set(values)
 
                             stats['updated'] += 1
-                            self.stdout.write(f"Updated {model_name}: {identifier_data}")
-                            
+                            self.stdout.write(f"Updated {model_name}: {instance}")
+
                         elif not options['dry_run']:
                             # Create new record
-                            new_data = item['fields'].copy()
+                            instance = Model.objects.create(**cleaned_data)
                             
-                            # Handle foreign key relationships
-                            for field, value in new_data.items():
-                                field_instance = Model._meta.get_field(field)
-                                if field_instance.is_relation and not field_instance.many_to_many:
-                                    if isinstance(value, int):
-                                        related_model = field_instance.related_model
-                                        new_data[field] = related_model.objects.get(pk=value)
-
-                            # Remove M2M fields from create data
-                            m2m_fields = {}
-                            for field in list(new_data.keys()):
-                                field_instance = Model._meta.get_field(field)
-                                if field_instance.many_to_many:
-                                    m2m_fields[field] = new_data.pop(field)
-
-                            instance = Model.objects.create(**new_data)
-
-                            # Handle M2M relationships after create
-                            for field, value in m2m_fields.items():
-                                m2m_field = getattr(instance, field)
-                                m2m_field.set(value)
+                            # Handle M2M relationships
+                            for field_name, values in m2m_fields.items():
+                                m2m_field = getattr(instance, field_name)
+                                m2m_field.set(values)
 
                             stats['created'] += 1
-                            self.stdout.write(f"Created {model_name}: {identifier_data}")
-                        else:
-                            # Dry run
-                            action = "Would update" if existing else "Would create"
-                            self.stdout.write(f"{action} {model_name}: {identifier_data}")
-                            stats['skipped'] += 1
+                            self.stdout.write(f"Created {model_name}: {instance}")
 
                 except Exception as e:
                     self.stderr.write(f"Error processing {model_name}: {str(e)}")
+                    if options.get('verbosity', 1) > 1:
+                        import traceback
+                        self.stderr.write(traceback.format_exc())
                     stats['skipped'] += 1
                     continue
 

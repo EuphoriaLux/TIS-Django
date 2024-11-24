@@ -14,7 +14,8 @@ from .models import (
     Brand,
     CruiseSessionCabinPrice,
     CabinCategory,
-    CruiseItinerary
+    CruiseItinerary,
+    Promotion
 )
 from .forms import ContactForm
 
@@ -149,12 +150,27 @@ def cruise_list(request):
 # cruises/views.py
 
 def cruise_detail(request, cruise_id):
-    cruise = get_object_or_404(Cruise, id=cruise_id)
+    cruise = get_object_or_404(Cruise.objects.select_related(
+        'ship',
+        'cruise_type',
+        'ship__company',
+        'ship__brand'
+    ).prefetch_related(
+        'itineraries',
+        'itineraries__port'
+    ), id=cruise_id)
     
-    # Get all active sessions
+    # Get all active sessions with optimized queries
     active_sessions = cruise.sessions.filter(
         start_date__gte=timezone.now().date(),
         status__in=['booking', 'guaranteed']
+    ).select_related(
+        'embarkation_port',
+        'disembarkation_port'
+    ).prefetch_related(
+        'cabin_prices',
+        'cabin_prices__cabin_category',
+        'cabin_prices__cabin_category__equipment'
     ).order_by('start_date')
 
     # Get all cabin prices for active sessions
@@ -172,17 +188,28 @@ def cruise_detail(request, cruise_id):
         'price'
     )
 
-    # Check for summer special (you can customize this logic)
-    has_summer_special = False
-    today = timezone.now().date()
-    if today.month in [6, 7, 8]:  # Summer months
-        has_summer_special = True
+    # Get itinerary ordered by day
+    itinerary = cruise.itineraries.all().order_by('day')
 
+    # Check for promotions
+    current_promotions = Promotion.objects.filter(
+        sessions__in=active_sessions,
+        start_date__lte=timezone.now().date(),
+        end_date__gte=timezone.now().date()
+    ).distinct()
+
+    # Get min and max prices
+    price_range = cruise.get_price_range()
+    
     context = {
         'cruise': cruise,
         'active_sessions': active_sessions,
         'session_prices': session_prices,
-        'has_summer_special': has_summer_special,
+        'itinerary': itinerary,
+        'current_promotions': current_promotions,
+        'price_range': price_range,
+        'min_price': price_range[0] if price_range else None,
+        'max_price': price_range[1] if price_range else None,
     }
     
     return render(request, 'cruises/cruise_detail.html', context)
