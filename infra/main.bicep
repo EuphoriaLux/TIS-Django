@@ -50,6 +50,3 @@ output WEB_APP_LOG_STREAM string = resourcesModule.outputs.WEB_APP_LOG_STREAM
 output WEB_APP_SSH string = resourcesModule.outputs.WEB_APP_SSH
 output WEB_APP_CONFIG object = resourcesModule.outputs.WEB_APP_CONFIG
 */
-
-output STORAGE_ACCOUNT_NAME string = resourcesModule.outputs.STORAGE_ACCOUNT_NAME
-output MEDIA_CONTAINER_NAME string = resourcesModule.outputs.MEDIA_CONTAINER_NAME
