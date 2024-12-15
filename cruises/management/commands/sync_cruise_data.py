@@ -59,9 +59,27 @@ class Command(BaseCommand):
                 if isinstance(value, int):
                     related_model = field.related_model
                     try:
-                        cleaned_data[field_name] = related_model.objects.get(pk=value)
+                        related_obj = related_model.objects.get(pk=value)
+                        cleaned_data[field_name] = related_obj
                     except related_model.DoesNotExist:
-                        raise Exception(f"Related {field_name} with pk={value} does not exist")
+                        # Try to find the object using natural keys if available
+                        identifier_fields = self.get_identifier_fields(related_model._meta.model_name)
+                        if hasattr(value, 'items'):  # If value is a dictionary
+                            query = {
+                                field: value.get(field)
+                                for field in identifier_fields
+                                if field in value
+                            }
+                            try:
+                                related_obj = related_model.objects.get(**query)
+                                cleaned_data[field_name] = related_obj
+                            except related_model.DoesNotExist:
+                                raise Exception(
+                                    f"Related {field_name} with pk={value} does not exist "
+                                    f"and could not be found using natural keys"
+                                )
+                        else:
+                            raise Exception(f"Related {field_name} with pk={value} does not exist")
                 continue
                 
             if isinstance(field, models.DecimalField):
@@ -69,7 +87,7 @@ class Command(BaseCommand):
                 continue
                 
             cleaned_data[field_name] = value
-            
+        
         return cleaned_data, m2m_fields
 
     def handle(self, *args, **options):
@@ -116,6 +134,12 @@ class Command(BaseCommand):
                         model_name = item['model'].split('.')[-1]
                         Model = apps.get_model('cruises', model_name)
 
+                        # Debug output for CruiseSession creation/update
+                        if model_name.lower() == 'cruisesession':
+                            self.stdout.write(f"\nDebug - Processing cruise session:")
+                            self.stdout.write(f"PK: {item.get('pk')}")
+                            self.stdout.write(f"Fields: {json.dumps(item['fields'], indent=2)}")
+
                         # Process fields and extract M2M relationships
                         cleaned_data, m2m_fields = self.handle_relations(Model, item['fields'])
 
@@ -124,8 +148,9 @@ class Command(BaseCommand):
                         if 'pk' in item:
                             try:
                                 instance = Model.objects.get(pk=item['pk'])
+                                self.stdout.write(f"Found existing instance with pk={item['pk']}")
                             except Model.DoesNotExist:
-                                pass
+                                self.stdout.write(f"No instance found with pk={item['pk']}")
 
                         if not instance:
                             identifier_fields = self.get_identifier_fields(model_name)
@@ -152,6 +177,12 @@ class Command(BaseCommand):
                             stats['updated'] += 1
                             self.stdout.write(f"Updated {model_name}: {instance}")
 
+                            # Debug output for CruiseSession verification
+                            if model_name.lower() == 'cruisesession':
+                                self.stdout.write(f"Debug - Verified cruise session after update:")
+                                verification = Model.objects.get(pk=instance.pk)
+                                self.stdout.write(f"Found session with PK {verification.pk}")
+
                         elif not options['dry_run']:
                             # Create new record
                             instance = Model.objects.create(**cleaned_data)
@@ -164,6 +195,22 @@ class Command(BaseCommand):
                             stats['created'] += 1
                             self.stdout.write(f"Created {model_name}: {instance}")
 
+                            # Debug output for CruiseSession verification
+                            if model_name.lower() == 'cruisesession':
+                                self.stdout.write(f"Debug - Verified cruise session after creation:")
+                                verification = Model.objects.get(pk=instance.pk)
+                                self.stdout.write(f"Found session with PK {verification.pk}")
+
+                        # Additional verification for CruiseSessionCabinPrice
+                        if model_name.lower() == 'cruisesessioncabinprice':
+                            cruise_session_id = item['fields'].get('cruise_session')
+                            self.stdout.write(f"\nDebug - Looking up cruise session {cruise_session_id}")
+                            try:
+                                session = CruiseSession.objects.get(pk=cruise_session_id)
+                                self.stdout.write(f"Found cruise session: {session}")
+                            except CruiseSession.DoesNotExist:
+                                self.stdout.write(self.style.ERROR(f"Could not find cruise session with id {cruise_session_id}"))
+
                 except Exception as e:
                     self.stderr.write(f"Error processing {model_name}: {str(e)}")
                     if options.get('verbosity', 1) > 1:
@@ -174,10 +221,10 @@ class Command(BaseCommand):
 
         # Print summary
         summary = f"""
-Fixture processing complete:
-- Created: {stats['created']}
-- Updated: {stats['updated']}
-- Skipped: {stats['skipped']}
-{'(DRY RUN - No changes made)' if options['dry_run'] else ''}
-"""
+    Fixture processing complete:
+    - Created: {stats['created']}
+    - Updated: {stats['updated']}
+    - Skipped: {stats['skipped']}
+    {'(DRY RUN - No changes made)' if options['dry_run'] else ''}
+    """
         self.stdout.write(self.style.SUCCESS(summary))

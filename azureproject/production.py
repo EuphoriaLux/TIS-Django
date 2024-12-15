@@ -27,6 +27,7 @@ STATICFILES_UPLOAD_LOGGER.setLevel(logging.INFO)
 
 # Configure logging handler if needed
 if not STATICFILES_UPLOAD_LOGGER.handlers:
+    
     handler = logging.StreamHandler()
     handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
     STATICFILES_UPLOAD_LOGGER.addHandler(handler)

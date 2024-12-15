@@ -236,7 +236,7 @@ body {
   font-size: 30px;
   width: 100%;
   font-weight: 600;
-  color: #444;
+  color: #ffffff;
 }
 
 @media screen and (max-width: 600px) {
@@ -252,7 +252,7 @@ body {
   font-size: 16px;
   font-size: .93rem;
   font-weight: 600;
-  color: #444;
+  color: #ffffff;
 }
 
 .page-nav ul li i {
