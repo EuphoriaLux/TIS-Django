@@ -17,7 +17,13 @@
                 {% load custom_filters %}
                 <div class="col-lg-4 col-md-6 col-sm-6">
                     <div class="pack-col">
-                        <img src="{{ cruise.get_image_url }}" alt="{{ cruise.name }}">
+                        {% if cruise.image %}
+                            <img src="{{ cruise.image.url }}" alt="{{ cruise.name }}">
+                        {% elif cruise.image_url %}
+                            <img src="{{ cruise.image_url }}" alt="{{ cruise.name }}">
+                        {% else %}
+                            <img src="{% static 'assets/images/default_cruise.jpg' %}" alt="{{ cruise.name }}">
+                        {% endif %}
                         <div class="revire row no-margin">
                             <ul class="rat">
                                 {% for i in "12345"|make_list %}

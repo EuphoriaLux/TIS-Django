@@ -26,18 +26,14 @@
                                 <div class="invalid-feedback d-block" id="cruise_session_errors"></div>
                             </div>
                             <div class="mb-3">
-                                <label for="{{ form.cruise_cabin_price.id_for_label }}" class="form-label">{{ form.cruise_cabin_price.label }}</label>
-                                <select name="cruise_cabin_price" id="{{ form.cruise_cabin_price.id_for_label }}" class="form-control">
-                                    <option value="">{% trans "Select a cabin type" %}</option>
-                                    {% if selected_cabin_price %}
-                                        <option value="{{ selected_cabin_price.id }}" selected>{{ selected_cabin_price.cabin_type.name }}: €{{ selected_cabin_price.price }}</option>
-                                    {% endif %}
-                                </select>
-                                <div class="invalid-feedback d-block" id="cruise_cabin_price_errors"></div>
+                                <label for="{{ form.cruise_session_cabin_price.id_for_label }}" class="form-label">{{ form.cruise_session_cabin_price.label }}</label>
+                                {{ form.cruise_session_cabin_price }}
+                                <div class="invalid-feedback d-block" id="cruise_session_cabin_price_errors"></div>
                             </div>
                             <div class="mb-3">
                                 <label for="{{ form.number_of_passengers.id_for_label }}" class="form-label">{{ form.number_of_passengers.label }}</label>
                                 {{ form.number_of_passengers }}
+                                <div class="help-text">{{ form.number_of_passengers.help_text }}</div>
                                 <div class="invalid-feedback d-block" id="number_of_passengers_errors"></div>
                             </div>
                             <hr>
@@ -61,6 +57,12 @@
                                 <label for="{{ form.phone.id_for_label }}" class="form-label">{{ form.phone.label }}</label>
                                 {{ form.phone }}
                                 <div class="invalid-feedback d-block" id="phone_errors"></div>
+                            </div>
+                            <!-- Add this before the submit button in your form -->
+                            <div class="mb-3">
+                                <label for="{{ form.cancellation_policy.id_for_label }}" class="form-label">{{ form.cancellation_policy.label }}</label>
+                                {{ form.cancellation_policy }}
+                                <div class="invalid-feedback d-block" id="cancellation_policy_errors"></div>
                             </div>
                             <button type="submit" class="btn btn-primary btn-lg w-100">{% trans "Request Quote" %}</button>
                         </form>
@@ -88,7 +90,7 @@
                             <i class="fas fa-bed"></i>
                             <span id="cabinType">
                                 {% if selected_cabin_price %}
-                                    {{ selected_cabin_price.cabin_type.name }}
+                                    {{ selected_cabin_price.cabin_category.name }}
                                 {% else %}
                                     {% trans "Select a cabin type" %}
                                 {% endif %}
@@ -98,7 +100,7 @@
                             <i class="fas fa-euro-sign"></i>
                             <span id="pricePerPerson">
                                 {% if selected_cabin_price %}
-                                    €{{ selected_cabin_price.price|floatformat:2 }} {% trans "per person" %}
+                                    €{{ selected_cabin_price.get_current_price|floatformat:2 }} {% trans "per person" %}
                                 {% else %}
                                     {% trans "Select a cabin type" %}
                                 {% endif %}
@@ -117,15 +119,6 @@
                     </div>
                 </div>
             </div>
-            <!-- Debug Information -->
-            <div class="row mt-5">
-                <div class="col-md-12">
-                    <h4>{% trans "Debug Information" %}</h4>
-                    <p><strong>Selected Session:</strong> {{ selected_session }}</p>
-                    <p><strong>Selected Cabin Price:</strong> {{ selected_cabin_price }}</p>
-                    <p><strong>Initial Total Price:</strong> €{{ initial_total_price }}</p>
-                </div>
-            </div>
         </div>
     </div>
 </div>
@@ -136,46 +129,159 @@
     document.addEventListener('DOMContentLoaded', function() {
         const form = document.getElementById('quoteForm');
         const sessionSelect = document.getElementById('{{ form.cruise_session.id_for_label }}');
-        const cabinPriceSelect = document.getElementById('{{ form.cruise_cabin_price.id_for_label }}');
+        const cabinPriceSelect = document.getElementById('{{ form.cruise_session_cabin_price.id_for_label }}');
         const passengersInput = document.getElementById('{{ form.number_of_passengers.id_for_label }}');
-        const totalPriceElement = document.getElementById('totalPrice');
+        const formMessages = document.getElementById('form-messages');
         const sessionDatesElement = document.getElementById('sessionDates');
         const cabinTypeElement = document.getElementById('cabinType');
         const pricePerPersonElement = document.getElementById('pricePerPerson');
+        const totalPriceElement = document.getElementById('totalPrice');
 
-        sessionSelect.addEventListener('change', function() {
-            // Clear cabin price selection when session changes
-            cabinPriceSelect.value = '';
-            // Submit the form to update cabin prices
-            form.submit();
+       // Handle session change
+        sessionSelect.addEventListener('change', async function() {
+        const sessionId = this.value;
+        if (sessionId) {
+            try {
+                const response = await fetch(`{% url 'quotes:create_quote' cruise.id %}?session_id=${sessionId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Clear and add default option
+                    cabinPriceSelect.innerHTML = '<option value="">{% trans "Select a cabin type" %}</option>';
+                    
+                    // Add cabin price options
+                    data.cabin_prices.forEach(price => {
+                        if (price.available) {
+                            // Create the option element
+                            const option = document.createElement('option');
+                            option.value = price.id;
+                            
+                            // Format the label with early bird info if applicable
+                            let label = `${price.label}`;
+                            if (price.early_bird_info) {
+                                label += ` (${price.early_bird_info})`;
+                            }
+                            option.textContent = label;
+                            
+                            // Add the option to the select
+                            cabinPriceSelect.appendChild(option);
+                        }
+                    });
+                    
+                    // Update session dates in summary
+                    const selectedOption = sessionSelect.options[sessionSelect.selectedIndex];
+                    if (selectedOption) {
+                        sessionDatesElement.textContent = selectedOption.text;
+                    }
+                    
+                    // Reset cabin selections
+                    updateSummary();
+                }
+            } catch (error) {
+                console.error('Error fetching cabin prices:', error);
+                formMessages.innerHTML = `
+                    <div class="alert alert-danger">
+                        {% trans "Error loading cabin prices. Please try again." %}
+                    </div>
+                `;
+            }
+        }
+    });
+
+        // Handle form submission
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Clear previous error messages
+            document.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
+            formMessages.innerHTML = '';
+
+            // Prepare form data
+            const formData = {
+                session_id: sessionSelect.value,
+                cabin_price_id: cabinPriceSelect.value,
+                number_of_passengers: passengersInput.value,
+                cancellation_policy: form.querySelector('#{{ form.cancellation_policy.id_for_label }}').value,  // Add this line
+                passenger: {
+                    first_name: form.querySelector('#{{ form.first_name.id_for_label }}').value,
+                    last_name: form.querySelector('#{{ form.last_name.id_for_label }}').value,
+                    email: form.querySelector('#{{ form.email.id_for_label }}').value,
+                    phone: form.querySelector('#{{ form.phone.id_for_label }}').value,
+                }
+            };
+
+            try {
+                const response = await fetch('{% url "quotes:create_quote" cruise.id %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    formMessages.innerHTML = `
+                        <div class="alert alert-success">
+                            {% trans "Quote request submitted successfully!" %}
+                        </div>
+                    `;
+                    setTimeout(() => {
+                        window.location.href = '{% url "quotes:quote_confirmation" %}';
+                    }, 1500);
+                } else {
+                    // Display errors
+                    Object.entries(data.errors).forEach(([field, errors]) => {
+                        const errorDiv = document.getElementById(`${field}_errors`);
+                        if (errorDiv) {
+                            errorDiv.textContent = Array.isArray(errors) ? errors.join(' ') : errors;
+                        }
+                    });
+                    
+                    formMessages.innerHTML = `
+                        <div class="alert alert-danger">
+                            {% trans "Please correct the errors below." %}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error submitting form:', error);
+                formMessages.innerHTML = `
+                    <div class="alert alert-danger">
+                        {% trans "An error occurred. Please try again later." %}
+                    </div>
+                `;
+            }
         });
 
-        cabinPriceSelect.addEventListener('change', updateSummary);
-        passengersInput.addEventListener('change', updateSummary);
-
+        // Update summary when values change
         function updateSummary() {
-            const selectedSession = sessionSelect.options[sessionSelect.selectedIndex];
             const selectedCabinPrice = cabinPriceSelect.options[cabinPriceSelect.selectedIndex];
             const passengers = parseInt(passengersInput.value) || 1;
 
-            if (selectedSession && selectedSession.value) {
-                sessionDatesElement.textContent = selectedSession.text;
-            } else {
-                sessionDatesElement.textContent = '{% trans "Select a session" %}';
-            }
-
             if (selectedCabinPrice && selectedCabinPrice.value) {
-                const [cabinType, price] = selectedCabinPrice.text.split(':');
-                cabinTypeElement.textContent = cabinType.trim();
-                const parsedPrice = parseFloat(price.replace('€', '').trim());
-                pricePerPersonElement.textContent = `€${parsedPrice.toFixed(2)} {% trans 'per person' %}`;
-                totalPriceElement.textContent = `€${(parsedPrice * passengers).toFixed(2)}`;
+                // Parse the cabin price text (format: "Category | Description - €Price (Early Bird info)")
+                const priceText = selectedCabinPrice.text;
+                const matches = priceText.match(/^(.+) - €([0-9,]+\.?[0-9]*)/);
+                
+                if (matches) {
+                    const [, cabinDesc, price] = matches;
+                    cabinTypeElement.textContent = cabinDesc;
+                    const parsedPrice = parseFloat(price.replace(',', ''));
+                    pricePerPersonElement.textContent = `€${parsedPrice.toFixed(2)} {% trans 'per person' %}`;
+                    totalPriceElement.textContent = `€${(parsedPrice * passengers).toFixed(2)}`;
+                }
             } else {
                 cabinTypeElement.textContent = '{% trans "Select a cabin type" %}';
                 pricePerPersonElement.textContent = '{% trans "Select a cabin type" %}';
                 totalPriceElement.textContent = '€0';
             }
         }
+
+        cabinPriceSelect.addEventListener('change', updateSummary);
+        passengersInput.addEventListener('change', updateSummary);
 
         // Initial update
         updateSummary();

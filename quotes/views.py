@@ -12,6 +12,7 @@ from django.db import transaction
 import json
 import logging
 from datetime import timedelta
+from django.urls import reverse
 
 from cruises.models import (
     Cruise,
@@ -27,65 +28,79 @@ logger = logging.getLogger(__name__)
 @require_http_methods(["GET", "POST"])
 def create_quote(request, cruise_id):
     if request.method == 'GET':
-        # Handle fetching cabin prices based on session_id
         session_id = request.GET.get('session_id')
         if not session_id:
             return JsonResponse({'success': False, 'errors': 'No session_id provided'}, status=400)
+        
         try:
             session = CruiseSession.objects.get(id=session_id, cruise_id=cruise_id)
             cabin_prices = CruiseSessionCabinPrice.objects.filter(
-                cruise_session=session
+                cruise_session=session,
+                is_active=True
             ).select_related('cabin_category')
             
             cabin_prices_data = [
                 {
                     'id': cp.id,
-                    'label': f"{cp.cabin_category.name}: €{cp.get_current_price()}",
+                    'label': f"{cp.cabin_category.name} | {cp.cabin_category.description}",
                     'price': float(cp.get_current_price()),
-                    'available': cp.available_cabins
-                } for cp in cabin_prices if cp.is_available
+                    'available': cp.available_cabins > 0,
+                    'early_bird_info': f"Early Bird until {cp.early_bird_deadline.strftime('%Y-%m-%d')}" if hasattr(cp, 'early_bird_deadline') and cp.is_early_bird else None,
+                    'is_early_bird': cp.is_early_bird if hasattr(cp, 'is_early_bird') else False
+                } 
+                for cp in cabin_prices if cp.is_available
             ]
-            return JsonResponse({'success': True, 'cabin_prices': cabin_prices_data})
+            
+            return JsonResponse({
+                'success': True, 
+                'cabin_prices': cabin_prices_data
+            })
+            
         except CruiseSession.DoesNotExist:
             return JsonResponse({'success': False, 'errors': 'Invalid session_id'}, status=400)
     
     elif request.method == 'POST':
         try:
             data = json.loads(request.body)
-        except json.JSONDecodeError:
-            return JsonResponse({'success': False, 'errors': 'Invalid JSON data'}, status=400)
-        
-        session_id = data.get('session_id')
-        cabin_price_id = data.get('cabin_price_id')
-        passenger_data = data.get('passenger', {})
-        number_of_passengers = data.get('number_of_passengers', 1)
-    
-        try:
-            cruise = get_object_or_404(Cruise, pk=cruise_id)
+            logger.debug(f"Received POST data: {data}")  # Debug logging
             
-            form = QuoteForm(data={
+            session_id = data.get('session_id')
+            cabin_price_id = data.get('cabin_price_id')
+            passenger_data = data.get('passenger', {})
+            number_of_passengers = data.get('number_of_passengers', 1)
+            
+            cruise = get_object_or_404(Cruise, pk=cruise_id)
+            session = get_object_or_404(CruiseSession, pk=session_id, cruise=cruise)
+                        
+            # In your create_quote view, update the form_data dictionary:
+            form_data = {
                 'cruise_session': session_id,
-                'cruise_session_cabin_price': cabin_price_id,  # Updated field name
+                'cruise_session_cabin_price': cabin_price_id,
                 'number_of_passengers': number_of_passengers,
+                'cancellation_policy': data.get('cancellation_policy'),  # Add this line
                 'first_name': passenger_data.get('first_name', ''),
                 'last_name': passenger_data.get('last_name', ''),
                 'email': passenger_data.get('email', ''),
                 'phone': passenger_data.get('phone', ''),
-            }, cruise=cruise)
+            }
+            
+            logger.debug(f"Form data: {form_data}")  # Debug logging
+            form = QuoteForm(data=form_data, cruise=cruise, session=session)
             
             if form.is_valid():
                 with transaction.atomic():
                     quote = form.save(commit=False)
                     quote.user = request.user if not isinstance(request.user, AnonymousUser) else None
-                    cabin_price = get_object_or_404(CruiseSessionCabinPrice, pk=cabin_price_id)
+                    quote.cruise = cruise
                     
-                    # Calculate total price using current price
+                    cabin_price = form.cleaned_data['cruise_session_cabin_price']
                     quote.base_price = cabin_price.get_current_price()
                     quote.total_price = quote.base_price * quote.number_of_passengers
                     quote.expiration_date = timezone.now() + timedelta(days=7)
                     quote.cabin_category = cabin_price.cabin_category
                     quote.save()
                     
+                    # Create passenger record
                     QuotePassenger.objects.create(
                         quote=quote,
                         first_name=form.cleaned_data['first_name'],
@@ -93,13 +108,26 @@ def create_quote(request, cruise_id):
                         email=form.cleaned_data['email'],
                         phone=form.cleaned_data['phone']
                     )
-                    
-                return JsonResponse({'success': True, 'quote_id': quote.id})
+                
+                return JsonResponse({
+                    'success': True, 
+                    'quote_id': quote.id,
+                    'redirect_url': reverse('quotes:quote_confirmation')
+                })
             else:
-                return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+                logger.error(f"Form validation errors: {form.errors}")  # Debug logging
+                return JsonResponse({
+                    'success': False, 
+                    'errors': form.errors
+                }, status=400)
+                
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'errors': 'Invalid JSON data'}, status=400)
         except Exception as e:
-            logger.error(f"Error creating quote: {e}")
+            logger.error(f"Error creating quote: {str(e)}")
             return JsonResponse({'success': False, 'errors': str(e)}, status=500)
+
+
 
 def quote_cruise(request, cruise_id):
     cruise = get_object_or_404(Cruise, pk=cruise_id)
@@ -108,69 +136,51 @@ def quote_cruise(request, cruise_id):
 
     selected_session = None
     selected_cabin_price = None
+    initial_total_price = 0
 
     if selected_session_id:
         try:
-            selected_session = get_object_or_404(CruiseSession, pk=selected_session_id, cruise=cruise)
-        except Http404:
+            selected_session = CruiseSession.objects.get(
+                pk=selected_session_id, 
+                cruise=cruise,
+                start_date__gte=timezone.now(),
+                status__in=['booking', 'guaranteed']
+            )
+        except CruiseSession.DoesNotExist:
             logger.error(f"CruiseSession with id={selected_session_id} does not exist for Cruise id={cruise_id}")
 
     if selected_cabin_price_id and selected_session:
         try:
-            selected_cabin_price = get_object_or_404(
-                CruiseSessionCabinPrice,
+            selected_cabin_price = CruiseSessionCabinPrice.objects.get(
                 pk=selected_cabin_price_id,
-                cruise_session=selected_session
+                cruise_session=selected_session,
+                is_active=True
             )
-        except Http404:
+            initial_total_price = selected_cabin_price.get_current_price()
+        except CruiseSessionCabinPrice.DoesNotExist:
             logger.error(f"CruiseSessionCabinPrice with id={selected_cabin_price_id} not found")
 
-    initial_data = {
-        'cruise_session': selected_session,
-        'cruise_session_cabin_price': selected_cabin_price,
-        'number_of_passengers': 1,
-    }
-
-    if request.method == 'POST':
-        form = QuoteForm(request.POST, cruise=cruise, session=selected_session, initial=initial_data)
-        if form.is_valid():
-            try:
-                with transaction.atomic():
-                    quote = form.save(commit=False)
-                    quote.cruise_session = form.cleaned_data['cruise_session']
-                    cabin_price = form.cleaned_data['cruise_session_cabin_price']
-                    
-                    quote.base_price = cabin_price.get_current_price()
-                    quote.total_price = quote.base_price * quote.number_of_passengers
-                    quote.expiration_date = timezone.now() + timedelta(days=7)
-                    quote.cabin_category = cabin_price.cabin_category
-                    quote.save()
-                    
-                    QuotePassenger.objects.create(
-                        quote=quote,
-                        first_name=form.cleaned_data['first_name'],
-                        last_name=form.cleaned_data['last_name'],
-                        email=form.cleaned_data['email'],
-                        phone=form.cleaned_data['phone']
-                    )
-                    
-                messages.success(request, 'Your quote has been successfully created.')
-                return redirect('quote:quote_confirmation')
-            except Exception as e:
-                logger.error(f"Error creating quote: {e}")
-                messages.error(request, 'There was an error creating your quote. Please try again.')
-    else:
-        form = QuoteForm(cruise=cruise, session=selected_session, initial=initial_data)
+    form = QuoteForm(
+        cruise=cruise, 
+        session=selected_session,
+        initial={
+            'cruise_session': selected_session,
+            'cruise_session_cabin_price': selected_cabin_price,
+            'number_of_passengers': 1,
+        }
+    )
 
     context = {
         'cruise': cruise,
         'form': form,
         'selected_session': selected_session,
         'selected_cabin_price': selected_cabin_price,
-        'initial_total_price': selected_cabin_price.get_current_price() if selected_cabin_price else 0,
+        'initial_total_price': initial_total_price,
     }
 
     return render(request, 'quote/quote_cruise.html', context)
+
+
 
 def quote_confirmation(request):
     return render(request, 'quote/quote_confirmation.html')
